@@ -16,13 +16,14 @@
 #define MAX_MIN 60
 #define MAX_HOUR 12
 #define PENDULUM_LENGTH 0.5f
-#define PENDULUM_THETA_MAX 45.0f
-#define PENDULUM_TIME_INTERVAL 100
+#define PENDULUM_THETA_MAX 35.0f
+#define PENDULUM_TIME_INTERVAL 50
 
-#define w g/PENDULUM_LENGTH
 
 GLfloat angleSec, angleMin, angleHour;
 GLfloat pendulumTheta = PENDULUM_THETA_MAX;
+GLfloat w = sqrt(g); // T = 2pi*sqrt(l/g) = 2 => l = 1 => w = 2pi / (2pi * sqrt(1/g))
+
 int pendulum_t = 0;
 
 void drawPoint(GLfloat x, GLfloat y) {
@@ -185,9 +186,8 @@ void clockTimer(int value) {
 void pendulumTimer(int value) {
   glutTimerFunc(PENDULUM_TIME_INTERVAL, pendulumTimer, 0);
 
-  pendulumTheta = PENDULUM_THETA_MAX * cosf(w * pendulum_t);
-  pendulum_t = pendulum_t + PENDULUM_TIME_INTERVAL;
-  if(pendulum_t == 2001) pendulum_t = 1;
+  pendulum_t = (pendulum_t + PENDULUM_TIME_INTERVAL);
+  pendulumTheta = PENDULUM_THETA_MAX * cosf(w * pendulum_t / 1000.0);
 
   glutPostRedisplay();
 }
