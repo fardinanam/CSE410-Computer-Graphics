@@ -3,7 +3,6 @@
 #include <math.h>
 #include <ctime>
 
-#define pi 3.1415926f
 #define g 9.8f
 
 // Global variables
@@ -17,12 +16,12 @@
 #define MAX_HOUR 12
 #define PENDULUM_LENGTH 0.5f
 #define PENDULUM_THETA_MAX 35.0f
-#define PENDULUM_TIME_INTERVAL 50
+#define PENDULUM_TIME_INTERVAL 10
 
 
 GLfloat angleSec, angleMin, angleHour;
 GLfloat pendulumTheta = PENDULUM_THETA_MAX;
-GLfloat w = sqrt(g); // T = 2pi*sqrt(l/g) = 2 => l = 1 => w = 2pi / (2pi * sqrt(1/g))
+GLfloat w = M_PI; // T = 2pi*sqrt(l/g) = 2 => l = 1 => w = 2pi / (2pi * sqrt(1/g))
 
 int pendulum_t = 0;
 
@@ -35,7 +34,7 @@ void drawPoint(GLfloat x, GLfloat y) {
 void drawCircle(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
   glBegin(GL_LINE_LOOP);
   for (int i = 0; i < segments; i++) {
-    float theta = 2.0f * pi * (GLfloat)i / (GLfloat)segments; // get the current angle
+    float theta = 2.0f * M_PI * (GLfloat)i / (GLfloat)segments; // get the current angle
     GLfloat x = radius * cosf(theta); // calculate the x component
     GLfloat y = radius * sinf(theta); // calculate the y component
     glVertex2f(x + cx, y + cy); // output vertex
@@ -43,10 +42,10 @@ void drawCircle(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
   glEnd();
 }
 
-void drawCircledFilled(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
-  GLdouble twicePi = 2.0 * pi;
+void drawCircleFilled(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
+  GLdouble twicePi = 2.0 * M_PI;
 
-  glBegin(GL_TRIANGLE_FAN);  // BEGIN CIRCLE
+  glBegin(GL_POLYGON);  // BEGIN CIRCLE
   glVertex2f(cx, cy);        // center of circle
   for (int i = 0; i <= segments; i++) {
     double theta = i * twicePi / segments;
@@ -60,7 +59,7 @@ void drawCircledFilled(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
 void drawDividers(GLfloat cx, GLfloat cy, GLfloat length, GLfloat radius, int n) {
   glBegin(GL_LINES);
   for (int i = 0; i < n; i++) {
-    float theta = 2.0f * pi * (GLfloat)i / (GLfloat)n;
+    float theta = 2.0f * M_PI * (GLfloat)i / (GLfloat)n;
 
     GLfloat x1 = radius * cosf(theta);
     GLfloat y1 = radius * sinf(theta);
@@ -124,9 +123,9 @@ void drawPendulum() {
   GLfloat shaftWidth = 0.04;
   GLfloat lowerCircleRadius = 0.05;
 
-  drawCircledFilled(0, 0, upperCircleRadius, 15); // upper circle
+  drawCircleFilled(0, 0, upperCircleRadius, 15); // upper circle
   drawRectangle(shaftWidth, shaftLength);           // shaft
-  drawCircledFilled(0, -upperCircleRadius - shaftLength, lowerCircleRadius, 25);
+  drawCircleFilled(0, -upperCircleRadius - shaftLength, lowerCircleRadius, 25);
 }
 
 void display() {
@@ -138,8 +137,9 @@ void display() {
 
   glPushMatrix();
   glTranslated(0, 0.3, 0);
-  drawCircle(0, 0, 0.3, 40); // inner circle
+  
   drawCircle(0, 0, 0.4, 50); // outer circle
+  drawCircle(0, 0, 0.3, 40); // inner circle
 
   drawDividers(0, 0, 0.02, 0.3, 60); // small dividers
   drawDividers(0, 0, 0.03, 0.3, 12); // large dividers
@@ -153,7 +153,6 @@ void display() {
   glPopMatrix();
 
   glPushMatrix();
-
   glTranslated(0, -0.05, 0);
   glRotated(pendulumTheta, 0, 0, 1);
   drawPendulum();
@@ -186,7 +185,7 @@ void clockTimer(int value) {
 void pendulumTimer(int value) {
   glutTimerFunc(PENDULUM_TIME_INTERVAL, pendulumTimer, 0);
 
-  pendulum_t = (pendulum_t + PENDULUM_TIME_INTERVAL);
+  pendulum_t = (pendulum_t + PENDULUM_TIME_INTERVAL) % 2000;
   pendulumTheta = PENDULUM_THETA_MAX * cosf(w * pendulum_t / 1000.0);
 
   glutPostRedisplay();
@@ -207,6 +206,10 @@ void reshape(int width, int height) {
     gluOrtho2D(-1, 1, -1.0 / aspect, 1.0 / aspect);
 }
 
+void init() { 
+  glClearColor(0, 0, 0, 1); 
+}
+
 int main(int argc, char** argv) {
   glutInit(&argc, argv);
   glutInitWindowSize(INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT);
@@ -218,6 +221,7 @@ int main(int argc, char** argv) {
   glutTimerFunc(0, pendulumTimer, 0);
 
   glutReshapeFunc(reshape);
+  init();
   glutMainLoop();
 
   return 0;
