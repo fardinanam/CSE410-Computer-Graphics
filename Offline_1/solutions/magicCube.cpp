@@ -13,7 +13,7 @@ const GLfloat rotationAmount = 10;
 const GLfloat cameraMoveAmount = 0.1;
 GLfloat rotationAngle = 0;
 
-GLfloat eyex = 4, eyey = 4, eyez = 4;
+struct point eyePos, relativeLookingPoint, upPos, rightDir;
 GLfloat centerx = 0, centery = 0, centerz = 0;
 GLfloat upx = 0, upy = 1, upz = 0;
 
@@ -62,96 +62,159 @@ void reshapeListener(GLsizei width, GLsizei height) {
 }
 
 void keyboardListener(unsigned char key, int x, int y) {
-  double v = 0.25;
-  double lx = centerx - eyex;
-  double lz = centerz - eyez;
-  double s;
-  switch (key)
-  {
-  case 'a':
-    rotationAngle += rotationAmount;
-    break;
-  case 'd':
-    rotationAngle -= rotationAmount;
-    break;
-  case 'w':
-    eyey += v;
-    break;
-  case 's':
-    eyey -= v;
-    break;
-  case ',':
-    if (baseTriangleScale > 0.0) {
-      // make the triangles smaller
-      baseTriangleScale -= 1.0 / CONVERSION_STEPS;
-      baseTriangleCenterX += baseTriangleCentroidX / CONVERSION_STEPS;
-      baseTriangleCenterY += baseTriangleCentroidY / CONVERSION_STEPS;
-      baseTriangleCenterZ += baseTriangleCentroidZ / CONVERSION_STEPS;
+  switch (key) {
+    case '1':
+      rightDir.x = rightDir.x * cos(cameraMoveAmount) + relativeLookingPoint.x * sin(cameraMoveAmount);
+      rightDir.y = rightDir.y * cos(cameraMoveAmount) + relativeLookingPoint.y * sin(cameraMoveAmount);
+      rightDir.z = rightDir.z * cos(cameraMoveAmount) + relativeLookingPoint.z * sin(cameraMoveAmount);
 
-      // make the sphere faces bigger
-      sphereFaceScale += 1.0 / CONVERSION_STEPS;
-      sphereTranslationX -= 1.0 / CONVERSION_STEPS;
+      relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
+      relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
+      relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
+      break;
 
-      // reduce cylinder height and increase theta
-      cylinderHeight -= maxCylinderHeight / CONVERSION_STEPS;
-      // cylinderTheta += maxCylindeTheta / CONVERSION_STEPS;
-      cylinderTranslationX -= cylinderMaxTranslationX / CONVERSION_STEPS;
-    }
-    break;
-  case '.':
-    if (baseTriangleScale < 1.0) {
-      // make the triangles bigger
-      baseTriangleScale += 1.0 / CONVERSION_STEPS;
-      baseTriangleCenterX -= baseTriangleCentroidX / CONVERSION_STEPS;
-      baseTriangleCenterY -= baseTriangleCentroidY / CONVERSION_STEPS;
-      baseTriangleCenterZ -= baseTriangleCentroidZ / CONVERSION_STEPS;
+    case '2':
+      rightDir.x = rightDir.x * cos(-cameraMoveAmount) + relativeLookingPoint.x * sin(-cameraMoveAmount);
+      rightDir.y = rightDir.y * cos(-cameraMoveAmount) + relativeLookingPoint.y * sin(-cameraMoveAmount);
+      rightDir.z = rightDir.z * cos(-cameraMoveAmount) + relativeLookingPoint.z * sin(-cameraMoveAmount);
 
-      // make the sphere faces smaller
-      sphereFaceScale -= 1.0 / CONVERSION_STEPS;
-      sphereTranslationX += 1.0 / CONVERSION_STEPS;
+      relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
+      relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
+      relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
+      break;
 
-      // increase cylinder height and reduce theta
-      cylinderHeight += maxCylinderHeight / CONVERSION_STEPS;
-      // cylinderTheta -= maxCylindeTheta / CONVERSION_STEPS;
-      cylinderTranslationX += cylinderMaxTranslationX / CONVERSION_STEPS;
-    }
-    break;
-  // case 'o':
-  //   isOctahedron = !isOctahedron;
-  //   break;
-  // case 'p':
-  //   isSphere = !isSphere;
-  //   break;
+    case '3':
+      relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) + upPos.x * sin(cameraMoveAmount);
+      relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) + upPos.y * sin(cameraMoveAmount);
+      relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) + upPos.z * sin(cameraMoveAmount);
 
-  default:
-    return;
+      upPos.x = upPos.x * cos(cameraMoveAmount) - relativeLookingPoint.x * sin(cameraMoveAmount);
+      upPos.y = upPos.y * cos(cameraMoveAmount) - relativeLookingPoint.y * sin(cameraMoveAmount);
+      upPos.z = upPos.z * cos(cameraMoveAmount) - relativeLookingPoint.z * sin(cameraMoveAmount);
+      break;
+
+    case '4':
+      relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) + upPos.x * sin(-cameraMoveAmount);
+      relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) + upPos.y * sin(-cameraMoveAmount);
+      relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) + upPos.z * sin(-cameraMoveAmount);
+
+      upPos.x = upPos.x * cos(-cameraMoveAmount) - relativeLookingPoint.x * sin(-cameraMoveAmount);
+      upPos.y = upPos.y * cos(-cameraMoveAmount) - relativeLookingPoint.y * sin(-cameraMoveAmount);
+      upPos.z = upPos.z * cos(-cameraMoveAmount) - relativeLookingPoint.z * sin(-cameraMoveAmount);
+      break;
+
+    case '5':
+      upPos.x = upPos.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
+      upPos.y = upPos.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
+      upPos.z = upPos.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
+
+      rightDir.x = rightDir.x * cos(cameraMoveAmount) - upPos.x * sin(cameraMoveAmount);
+      rightDir.y = rightDir.y * cos(cameraMoveAmount) - upPos.y * sin(cameraMoveAmount);
+      rightDir.z = rightDir.z * cos(cameraMoveAmount) - upPos.z * sin(cameraMoveAmount);
+      break;
+
+    case '6':
+      upPos.x = upPos.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
+      upPos.y = upPos.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
+      upPos.z = upPos.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
+
+      rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upPos.x * sin(-cameraMoveAmount);
+      rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upPos.y * sin(-cameraMoveAmount);
+      rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upPos.z * sin(-cameraMoveAmount);
+      break;
+
+    case 'a':
+      rotationAngle += rotationAmount;
+      break;
+    case 'd':
+      rotationAngle -= rotationAmount;
+      break;
+    case 'w':
+      eyePos.y += cameraMoveAmount;
+      break;
+    case 's':
+      eyePos.y -= cameraMoveAmount;
+      break;
+    case ',':
+      if (baseTriangleScale > 0.0) {
+        // make the triangles smaller
+        baseTriangleScale -= 1.0 / CONVERSION_STEPS;
+        baseTriangleCenterX += baseTriangleCentroidX / CONVERSION_STEPS;
+        baseTriangleCenterY += baseTriangleCentroidY / CONVERSION_STEPS;
+        baseTriangleCenterZ += baseTriangleCentroidZ / CONVERSION_STEPS;
+
+        // make the sphere faces bigger
+        sphereFaceScale += 1.0 / CONVERSION_STEPS;
+        sphereTranslationX -= 1.0 / CONVERSION_STEPS;
+
+        // reduce cylinder height and translate it
+        cylinderHeight -= maxCylinderHeight / CONVERSION_STEPS;
+        cylinderTranslationX -= cylinderMaxTranslationX / CONVERSION_STEPS;
+      }
+      break;
+    case '.':
+      if (baseTriangleScale < 1.0) {
+        // make the triangles bigger
+        baseTriangleScale += 1.0 / CONVERSION_STEPS;
+        baseTriangleCenterX -= baseTriangleCentroidX / CONVERSION_STEPS;
+        baseTriangleCenterY -= baseTriangleCentroidY / CONVERSION_STEPS;
+        baseTriangleCenterZ -= baseTriangleCentroidZ / CONVERSION_STEPS;
+
+        // make the sphere faces smaller
+        sphereFaceScale -= 1.0 / CONVERSION_STEPS;
+        sphereTranslationX += 1.0 / CONVERSION_STEPS;
+
+        // increase cylinder height and translate it
+        cylinderHeight += maxCylinderHeight / CONVERSION_STEPS;
+        cylinderTranslationX += cylinderMaxTranslationX / CONVERSION_STEPS;
+      }
+      break;
+
+    default:
+      return;
   }
   glutPostRedisplay(); // Post a paint request to activate display()
 }
 
 void specialKeyListener(int key, int x, int y) {
   switch (key) {
-  case GLUT_KEY_UP: // up arrow key
-    eyex += cameraMoveAmount;
-    centerx += cameraMoveAmount;
-    break;
-  case GLUT_KEY_DOWN: // down arrow key
-    eyex -= cameraMoveAmount;
-    centerx -= cameraMoveAmount;
-    break;
+    case GLUT_KEY_UP: // down arrow key
+      eyePos.x += relativeLookingPoint.x;
+      eyePos.y += relativeLookingPoint.y;
+      eyePos.z += relativeLookingPoint.z;
+      break;
+    case GLUT_KEY_DOWN: // up arrow key
+      eyePos.x -= relativeLookingPoint.x;
+      eyePos.y -= relativeLookingPoint.y;
+      eyePos.z -= relativeLookingPoint.z;
+      break;
 
-  case GLUT_KEY_LEFT:
-    eyez += cameraMoveAmount;
-    centerz += cameraMoveAmount;
-    break;
-  case GLUT_KEY_RIGHT:
-    eyez -= cameraMoveAmount;
-    centerz -= cameraMoveAmount;
-    break;
+    case GLUT_KEY_RIGHT:
+      eyePos.x += rightDir.x;
+      eyePos.y += rightDir.y;
+      eyePos.z += rightDir.z;
+      break;
+    case GLUT_KEY_LEFT:
+      eyePos.x -= rightDir.x;
+      eyePos.y -= rightDir.y;
+      eyePos.z -= rightDir.z;
+      break;
 
-  default:
-    return;
+    case GLUT_KEY_PAGE_UP:
+      eyePos.x += upPos.x;
+      eyePos.y += upPos.y;
+      eyePos.z += upPos.z;
+      break;
+    case GLUT_KEY_PAGE_DOWN:
+      eyePos.x -= upPos.x;
+      eyePos.y -= upPos.y;
+      eyePos.z -= upPos.z;
+      break;
+
+    default:
+      return;
   }
+  
   glutPostRedisplay(); // Post a paint request to activate display()
 }
 
@@ -381,9 +444,9 @@ void display()
   glLoadIdentity();           // Reset the model-view matrix
 
   // control viewing (or camera)
-  gluLookAt(eyex, eyey, eyez,
-            centerx, centery, centerz,
-            upx, upy, upz);
+  gluLookAt(eyePos.x, eyePos.y, eyePos.z,
+            eyePos.x + relativeLookingPoint.x, eyePos.y + relativeLookingPoint.y, eyePos.z + relativeLookingPoint.z,
+            upPos.x, upPos.y, upPos.z);
 
   if (isAxes)
     drawAxes();
@@ -424,6 +487,20 @@ void display()
 /* Main function: GLUT runs as a console application starting at main()  */
 int main(int argc, char **argv)
 {
+  eyePos.x = 0;
+  eyePos.y = 0;
+  eyePos.z = 8;
+
+  relativeLookingPoint.x = 0;
+  relativeLookingPoint.y = 0;
+  relativeLookingPoint.z = -1;
+  upPos.x = 0;
+  upPos.y = 1;
+  upPos.z = 0;
+  rightDir.x = 1;
+  rightDir.y = 0;
+  rightDir.z = 0;
+
   glutInit(&argc, argv);                                    // Initialize GLUT
   glutInitWindowSize(640, 640);                             // Set the window's initial width & height
   glutInitWindowPosition(50, 50);                           // Position the window's initial top-left corner
