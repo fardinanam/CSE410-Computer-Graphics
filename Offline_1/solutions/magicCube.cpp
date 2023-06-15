@@ -6,7 +6,14 @@ GLfloat eyex = 4, eyey = 4, eyez = 4;
 GLfloat centerx = 0, centery = 0, centerz = 0;
 GLfloat upx = 0, upy = 1, upz = 0;
 
+GLfloat PHI = acos(-1 / 3), // angle between two faces of the octahedron
+              r = 0.577;    // radius of the sphere
+
 bool isAxes = true;
+
+struct point {
+  GLfloat x, y, z;
+};
 
 /* Initialize OpenGL Graphics */
 void initGL()
@@ -104,7 +111,7 @@ void drawBaseTriangle() {
   glEnd();
 }
 
-void drawUpperCap() {
+void drawOctahedronHead() {
   GLdouble angle = 90;
 
   for (int i = 0; i < 4; i++)
@@ -121,13 +128,82 @@ void drawUpperCap() {
 
 void drawOctahedron() {
   glPushMatrix();
-  drawUpperCap();
+  drawOctahedronHead();
   glPopMatrix();
 
   glPushMatrix();
-  glRotated(180, 0, 0, 1); 
-  drawUpperCap();
+  glRotated(180, 0, 0, 1);
+  drawOctahedronHead();
   glPopMatrix(); 
+}
+
+void drawSphereFace(int slices) {
+  // GLfloat phiMin = 54.74 * M_PI / 180, phiMax = 125.26 * M_PI / 180;
+  GLfloat phiMin = -PHI / 2, longitudeArcLength = M_PI - PHI;
+  GLfloat thetaMin = M_PI / 4, latitudeArcLength = M_PI / 2;
+
+  struct point points[slices + 1][slices + 1];
+
+  for (int i = 0; i <= slices; i++) {
+    GLfloat phi = phiMin + i * longitudeArcLength / slices;
+    GLfloat y = r * sin(phi);
+    
+    for (int j = 0; j <= slices; j++) {
+      GLfloat theta = thetaMin + j * latitudeArcLength / slices;
+      GLfloat x = r * cos(phi) * sin(theta);
+      GLfloat z = r * cos(phi) * cos(theta);
+
+      points[i][j].x = x;
+      points[i][j].y = y;
+      points[i][j].z = z;
+    }
+  }
+
+  glBegin(GL_QUADS);
+  for (int j = 0; j < slices; j++)
+  {
+    for (int i = 0; i < slices; i++)
+    {
+      // GLfloat c = (2 + cos((i + j) * 2.0 * M_PI / slices)) / 3;
+      // glColor3f(c, c, c);
+      glVertex3f(points[j][i].x, points[j][i].y, points[j][i].z);
+      glVertex3f(points[j][i + 1].x, points[j][i + 1].y, points[j][i + 1].z);
+
+      glVertex3f(points[j + 1][i + 1].x, points[j + 1][i + 1].y, points[j + 1][i + 1].z);
+      glVertex3f(points[j + 1][i].x, points[j + 1][i].y, points[j + 1][i].z);
+    }
+  }
+  glEnd();
+}
+
+void drawSphere(double radius, int stacks, int slices)
+{ 
+  GLfloat angle = 90;
+
+  glPushMatrix();
+
+  for (int i = 0; i < 4; i++) {
+    if (i % 2)
+      // glColor3d(0.22, 0.757, 0.447);
+      glColor3d(0.204, 0.565, 0.863);
+    else
+      glColor3d(0.302, 0.753, 0.72);
+    drawSphereFace(10);
+    glRotated(angle, 0, 1, 0);
+  }
+
+  glPopMatrix();
+
+  glPushMatrix();
+
+  glRotated(angle, 1, 0, 0);
+  glColor3d(0.204, 0.565, 0.863);
+  // drawSphereFace(10);
+
+  // glRotated(angle * 2, 0, 0, 1);
+  // glColor3d(0.584, 0.38, 0.886);
+  // drawSphereFace(10);
+  glPopMatrix();
 }
 
 void display()
@@ -146,8 +222,12 @@ void display()
     drawAxes();
 
   // draw the octahedron
+  // glPushMatrix();
+  // drawOctahedron();
+  // glPopMatrix();
+
   glPushMatrix();
-  drawOctahedron();
+  drawSphere(0.577, 40, 100);
   glPopMatrix();
 
   glutSwapBuffers(); // Render now
@@ -160,7 +240,7 @@ int main(int argc, char **argv)
   glutInitWindowSize(640, 640);                             // Set the window's initial width & height
   glutInitWindowPosition(50, 50);                           // Position the window's initial top-left corner
   glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB); // Depth, Double buffer, RGB color
-  glutCreateWindow("OpenGL 3D Drawing");                    // Create a window with the given title
+  glutCreateWindow("Magic Cube");                           // Create a window with the given title
   glutDisplayFunc(display);                                 // Register display callback handler for window re-paint
   glutReshapeFunc(reshapeListener);                         // Register callback handler for window re-shape
   glutKeyboardFunc(keyboardListener);                       // Register callback handler for normal-key event
