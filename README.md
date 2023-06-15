@@ -22,8 +22,8 @@ Contains all the assignment of the course CSE410.
   ],
 ```
 
-Or just compile and run the code as follows:
+## Running openGL in terminal:
 ```sh
-  g++ -o <filename.cpp> <outputFileName> -lGL -lGLU -lglut
+  g++ <filename.cpp> -o <outputFileName> -lGL -lGLU -lglut
   ./<outputFileName>
 ```
