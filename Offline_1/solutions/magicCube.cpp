@@ -40,6 +40,41 @@ void reshapeListener(GLsizei width, GLsizei height)
   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
+void keyboardListener(unsigned char key, int x, int y)
+{
+  double v = 0.25;
+  double lx = centerx - eyex;
+  double lz = centerz - eyez;
+  double s;
+  switch (key)
+  {
+  case 'a':
+    eyex += v * (upy * lz);
+    eyez += v * (-lx * upy);
+    s = sqrt(eyex * eyex + eyez * eyez) / (4 * sqrt(2));
+    eyex /= s;
+    eyez /= s;
+    break;
+  case 'd':
+    eyex += v * (-upy * lz);
+    eyez += v * (lx * upy);
+    s = sqrt(eyex * eyex + eyez * eyez) / (4 * sqrt(2));
+    eyex /= s;
+    eyez /= s;
+    break;
+  case 'w':
+    eyey += v;
+    break;
+  case 's':
+    eyey -= v;
+    break;
+
+  default:
+    return;
+  }
+  glutPostRedisplay(); // Post a paint request to activate display()
+}
+
 void drawAxes()
 {
   glLineWidth(3);
@@ -61,26 +96,38 @@ void drawAxes()
   glEnd();
 }
 
-void drawTriangle(GLfloat x1, GLfloat y1, GLfloat z1,
-                  GLfloat x2, GLfloat y2, GLfloat z2,
-                  GLfloat x3, GLfloat y3, GLfloat z3)
-{
+void drawBaseTriangle() {
   glBegin(GL_TRIANGLES);
-  glVertex3f(x1, y1, z1);
-  glVertex3f(x2, y2, z2);
-  glVertex3f(x3, y3, z3);
+  glVertex3f(1, 0, 0);
+  glVertex3f(0, 1, 0);
+  glVertex3f(0, 0, 1);
   glEnd();
 }
 
-void drawOctahedronHead() {
-  drawTriangle(0, 1, 0,
-               0, 0, -1,
-               1, 0, 0);
+void drawUpperCap() {
+  GLdouble angle = 90;
+
+  for (int i = 0; i < 4; i++)
+  {
+    if (i % 2 == 0)
+      glColor3d(0.302, 0.753, 0.71);
+    else
+      glColor3d(0.965, 0.427, 0.608);
+
+    glRotated(angle, 0, 1, 0);
+    drawBaseTriangle();
+  }
 }
 
 void drawOctahedron() {
-  glColor3d(1, 0, 0);
-  drawOctahedronHead();
+  glPushMatrix();
+  drawUpperCap();
+  glPopMatrix();
+
+  glPushMatrix();
+  glRotated(180, 0, 0, 1); 
+  drawUpperCap();
+  glPopMatrix(); 
 }
 
 void display()
@@ -99,7 +146,9 @@ void display()
     drawAxes();
 
   // draw the octahedron
+  glPushMatrix();
   drawOctahedron();
+  glPopMatrix();
 
   glutSwapBuffers(); // Render now
 }
@@ -114,7 +163,7 @@ int main(int argc, char **argv)
   glutCreateWindow("OpenGL 3D Drawing");                    // Create a window with the given title
   glutDisplayFunc(display);                                 // Register display callback handler for window re-paint
   glutReshapeFunc(reshapeListener);                         // Register callback handler for window re-shape
-  // glutKeyboardFunc(keyboardListener);                       // Register callback handler for normal-key event
+  glutKeyboardFunc(keyboardListener);                       // Register callback handler for normal-key event
   // glutSpecialFunc(specialKeyListener);                      // Register callback handler for special-key event
   initGL();                                                 // Our own OpenGL initialization
   glutMainLoop();                                           // Enter the event-processing loop
