@@ -57,28 +57,32 @@ void drawCircleFilled(GLfloat cx, GLfloat cy, GLfloat radius, int segments) {
 }
 
 void drawDividers(GLfloat cx, GLfloat cy, GLfloat length, GLfloat radius, int n) {
-  glBegin(GL_LINES);
+  // glBegin(GL_LINES);
   for (int i = 0; i < n; i++) {
     float theta = 2.0f * M_PI * (GLfloat)i / (GLfloat)n;
 
     GLfloat x1 = radius * cosf(theta);
     GLfloat y1 = radius * sinf(theta);
-    GLfloat x2 = (radius - length) * cosf(theta);
-    GLfloat y2 = (radius - length) * sinf(theta);
 
-    glVertex2d(x1 + cx, y1 + cy);
-    glVertex2d(x2 + cx, y2 + cy);
+    drawCircleFilled(x1 + cx, y1 + cy, length, 30);
   }
-  glEnd();
+  // glEnd();
 }
 
 void drawClockOutline() {
-  glBegin(GL_LINE_LOOP);
-  glVertex2d(-0.5, 0.9);
+  glBegin(GL_POLYGON);
+  // glColor3d(0.929, 0.973, 0.796);
+  glVertex2d(-0.45, 0.9);
+  glVertex2d(-0.5, 0.85);
+  // glColor3d(1, 1, 1);
   glVertex2d(-0.5, -0.5);
+  // glColor3d(0.929, 0.973, 0.796);
   glVertex2d(0, -0.9);
+  // glColor3d(1, 1, 1);
   glVertex2d(0.5, -0.5);
-  glVertex2d(0.5, 0.9);
+  // glColor3d(0.929, 0.973, 0.796);
+  glVertex2d(0.5, 0.85);
+  glVertex2d(0.45, 0.9);
   glEnd();
 }
 
@@ -97,11 +101,7 @@ void drawHand(GLfloat width, GLfloat length, GLfloat angle) {
   glVertex2d(-x, 0);
   glEnd();
 
-  glBegin(GL_TRIANGLES);
-  glVertex2d(x, quadLength);
-  glVertex2d(0, length);
-  glVertex2d(-x, quadLength);
-  glEnd();
+  drawCircleFilled(0, quadLength, x, 20);
 
   glPopMatrix();
 }
@@ -133,27 +133,47 @@ void display() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
+  glColor3d(0.929, 0.973, 0.796);
+  glPushMatrix();
+  glTranslated(0, -0.05, 0);
+  glScaled(0.9, 0.9, 1);
   drawClockOutline();
+  glPopMatrix();
 
   glPushMatrix();
   glTranslated(0, 0.3, 0);
-  
-  drawCircle(0, 0, 0.4, 50); // outer circle
-  drawCircle(0, 0, 0.3, 40); // inner circle
 
-  drawDividers(0, 0, 0.02, 0.3, 60); // small dividers
-  drawDividers(0, 0, 0.03, 0.3, 12); // large dividers
+  glColor3d(0, 0.878, 0.439);
+  drawCircleFilled(0, 0, 0.4, 100); // outer circle
+  glColor3d(0, 0.192, 0.267);
+  drawCircleFilled(0, 0, 0.3, 50); // inner circle
+
+  glColor3d(1, 1, 1);
+  drawDividers(0, 0, 0.005, 0.28, 60); // small dividers
+  glLineWidth(3);
+  drawDividers(0, 0, 0.01, 0.28, 12); // large dividers
+  glLineWidth(1);
+
+  // hour hand
+  glColor3d(0, 0.878, 0.439);
+  drawHand(0.034, 0.18, angleHour);
+  // minute hand
+  glColor3d(1, 1, 1);
+  drawHand(0.02, 0.24, angleMin);
+  // second hand
+  drawHand(0.01, 0.3, angleSec);
+  glPushMatrix();
+  glRotated(180, 0, 0, 1 );
+  drawHand(0.01, 0.07, angleSec);
+  glPopMatrix();
 
   glPointSize(10);
-  drawPoint(0, 0); // center point
-
-  drawHand(0.01, 0.27, angleSec); // second hand
-  drawHand(0.015, 0.2, angleMin); // minute hand
-  drawHand(0.02, 0.15, angleHour); // hour hand
+  drawCircleFilled(0, 0, 0.017, 30); // center point
   glPopMatrix();
 
   glPushMatrix();
   glTranslated(0, -0.05, 0);
+  glColor3d(0, 0.192, 0.267);
   glRotated(pendulumTheta, 0, 0, 1);
   drawPendulum();
 
