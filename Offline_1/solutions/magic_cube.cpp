@@ -61,66 +61,126 @@ void reshapeListener(GLsizei width, GLsizei height) {
   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
+void lookLeft() {
+  rightDir.x = rightDir.x * cos(cameraMoveAmount) + relativeLookingPoint.x * sin(cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(cameraMoveAmount) + relativeLookingPoint.y * sin(cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(cameraMoveAmount) + relativeLookingPoint.z * sin(cameraMoveAmount);
+
+  relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
+  relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
+  relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
+}
+
+void lookRight() {
+  rightDir.x = rightDir.x * cos(-cameraMoveAmount) + relativeLookingPoint.x * sin(-cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(-cameraMoveAmount) + relativeLookingPoint.y * sin(-cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(-cameraMoveAmount) + relativeLookingPoint.z * sin(-cameraMoveAmount);
+
+  relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
+  relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
+  relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
+}
+
+void lookUp() {
+  relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) + upPos.x * sin(cameraMoveAmount);
+  relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) + upPos.y * sin(cameraMoveAmount);
+  relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) + upPos.z * sin(cameraMoveAmount);
+
+  upPos.x = upPos.x * cos(cameraMoveAmount) - relativeLookingPoint.x * sin(cameraMoveAmount);
+  upPos.y = upPos.y * cos(cameraMoveAmount) - relativeLookingPoint.y * sin(cameraMoveAmount);
+  upPos.z = upPos.z * cos(cameraMoveAmount) - relativeLookingPoint.z * sin(cameraMoveAmount);
+}
+
+void lookDown() {
+  relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) + upPos.x * sin(-cameraMoveAmount);
+  relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) + upPos.y * sin(-cameraMoveAmount);
+  relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) + upPos.z * sin(-cameraMoveAmount);
+
+  upPos.x = upPos.x * cos(-cameraMoveAmount) - relativeLookingPoint.x * sin(-cameraMoveAmount);
+  upPos.y = upPos.y * cos(-cameraMoveAmount) - relativeLookingPoint.y * sin(-cameraMoveAmount);
+  upPos.z = upPos.z * cos(-cameraMoveAmount) - relativeLookingPoint.z * sin(-cameraMoveAmount);
+}
+
+void tiltCounterClockwise() {
+  upPos.x = upPos.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
+  upPos.y = upPos.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
+  upPos.z = upPos.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
+
+  rightDir.x = rightDir.x * cos(cameraMoveAmount) - upPos.x * sin(cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(cameraMoveAmount) - upPos.y * sin(cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(cameraMoveAmount) - upPos.z * sin(cameraMoveAmount);
+}
+
+void tiltClockwise() {
+  upPos.x = upPos.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
+  upPos.y = upPos.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
+  upPos.z = upPos.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
+
+  rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upPos.x * sin(-cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upPos.y * sin(-cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upPos.z * sin(-cameraMoveAmount);
+}
+
+void translateTowardsSphere() {
+  if (baseTriangleScale > 0.0) {
+    // make the triangles smaller
+    baseTriangleScale -= 1.0 / CONVERSION_STEPS;
+    baseTriangleCenterX += baseTriangleCentroidX / CONVERSION_STEPS;
+    baseTriangleCenterY += baseTriangleCentroidY / CONVERSION_STEPS;
+    baseTriangleCenterZ += baseTriangleCentroidZ / CONVERSION_STEPS;
+
+    // make the sphere faces bigger
+    sphereFaceScale += 1.0 / CONVERSION_STEPS;
+    sphereTranslationX -= 1.0 / CONVERSION_STEPS;
+
+    // reduce cylinder height and translate it
+    cylinderHeight -= maxCylinderHeight / CONVERSION_STEPS;
+    cylinderTranslationX -= cylinderMaxTranslationX / CONVERSION_STEPS;
+  }
+}
+
+void translateTowardsOctahedron() {
+  if (baseTriangleScale < 1.0) {
+    // make the triangles bigger
+    baseTriangleScale += 1.0 / CONVERSION_STEPS;
+    baseTriangleCenterX -= baseTriangleCentroidX / CONVERSION_STEPS;
+    baseTriangleCenterY -= baseTriangleCentroidY / CONVERSION_STEPS;
+    baseTriangleCenterZ -= baseTriangleCentroidZ / CONVERSION_STEPS;
+
+    // make the sphere faces smaller
+    sphereFaceScale -= 1.0 / CONVERSION_STEPS;
+    sphereTranslationX += 1.0 / CONVERSION_STEPS;
+
+    // increase cylinder height and translate it
+    cylinderHeight += maxCylinderHeight / CONVERSION_STEPS;
+    cylinderTranslationX += cylinderMaxTranslationX / CONVERSION_STEPS;
+  }
+}
+
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
     case '1':
-      rightDir.x = rightDir.x * cos(cameraMoveAmount) + relativeLookingPoint.x * sin(cameraMoveAmount);
-      rightDir.y = rightDir.y * cos(cameraMoveAmount) + relativeLookingPoint.y * sin(cameraMoveAmount);
-      rightDir.z = rightDir.z * cos(cameraMoveAmount) + relativeLookingPoint.z * sin(cameraMoveAmount);
-
-      relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
-      relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
-      relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
+      lookLeft();
       break;
 
     case '2':
-      rightDir.x = rightDir.x * cos(-cameraMoveAmount) + relativeLookingPoint.x * sin(-cameraMoveAmount);
-      rightDir.y = rightDir.y * cos(-cameraMoveAmount) + relativeLookingPoint.y * sin(-cameraMoveAmount);
-      rightDir.z = rightDir.z * cos(-cameraMoveAmount) + relativeLookingPoint.z * sin(-cameraMoveAmount);
-
-      relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
-      relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
-      relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
+      lookRight();
       break;
 
     case '3':
-      relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) + upPos.x * sin(cameraMoveAmount);
-      relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) + upPos.y * sin(cameraMoveAmount);
-      relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) + upPos.z * sin(cameraMoveAmount);
-
-      upPos.x = upPos.x * cos(cameraMoveAmount) - relativeLookingPoint.x * sin(cameraMoveAmount);
-      upPos.y = upPos.y * cos(cameraMoveAmount) - relativeLookingPoint.y * sin(cameraMoveAmount);
-      upPos.z = upPos.z * cos(cameraMoveAmount) - relativeLookingPoint.z * sin(cameraMoveAmount);
+      lookUp();
       break;
 
     case '4':
-      relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) + upPos.x * sin(-cameraMoveAmount);
-      relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) + upPos.y * sin(-cameraMoveAmount);
-      relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) + upPos.z * sin(-cameraMoveAmount);
-
-      upPos.x = upPos.x * cos(-cameraMoveAmount) - relativeLookingPoint.x * sin(-cameraMoveAmount);
-      upPos.y = upPos.y * cos(-cameraMoveAmount) - relativeLookingPoint.y * sin(-cameraMoveAmount);
-      upPos.z = upPos.z * cos(-cameraMoveAmount) - relativeLookingPoint.z * sin(-cameraMoveAmount);
+      lookDown();
       break;
 
     case '5':
-      upPos.x = upPos.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
-      upPos.y = upPos.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
-      upPos.z = upPos.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
-
-      rightDir.x = rightDir.x * cos(cameraMoveAmount) - upPos.x * sin(cameraMoveAmount);
-      rightDir.y = rightDir.y * cos(cameraMoveAmount) - upPos.y * sin(cameraMoveAmount);
-      rightDir.z = rightDir.z * cos(cameraMoveAmount) - upPos.z * sin(cameraMoveAmount);
+      tiltCounterClockwise();
       break;
 
     case '6':
-      upPos.x = upPos.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
-      upPos.y = upPos.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
-      upPos.z = upPos.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
-
-      rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upPos.x * sin(-cameraMoveAmount);
-      rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upPos.y * sin(-cameraMoveAmount);
-      rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upPos.z * sin(-cameraMoveAmount);
+      tiltClockwise();
       break;
 
     case 'a':
@@ -136,38 +196,10 @@ void keyboardListener(unsigned char key, int x, int y) {
       eyePos.y -= cameraMoveAmount;
       break;
     case ',':
-      if (baseTriangleScale > 0.0) {
-        // make the triangles smaller
-        baseTriangleScale -= 1.0 / CONVERSION_STEPS;
-        baseTriangleCenterX += baseTriangleCentroidX / CONVERSION_STEPS;
-        baseTriangleCenterY += baseTriangleCentroidY / CONVERSION_STEPS;
-        baseTriangleCenterZ += baseTriangleCentroidZ / CONVERSION_STEPS;
-
-        // make the sphere faces bigger
-        sphereFaceScale += 1.0 / CONVERSION_STEPS;
-        sphereTranslationX -= 1.0 / CONVERSION_STEPS;
-
-        // reduce cylinder height and translate it
-        cylinderHeight -= maxCylinderHeight / CONVERSION_STEPS;
-        cylinderTranslationX -= cylinderMaxTranslationX / CONVERSION_STEPS;
-      }
+      translateTowardsSphere();
       break;
     case '.':
-      if (baseTriangleScale < 1.0) {
-        // make the triangles bigger
-        baseTriangleScale += 1.0 / CONVERSION_STEPS;
-        baseTriangleCenterX -= baseTriangleCentroidX / CONVERSION_STEPS;
-        baseTriangleCenterY -= baseTriangleCentroidY / CONVERSION_STEPS;
-        baseTriangleCenterZ -= baseTriangleCentroidZ / CONVERSION_STEPS;
-
-        // make the sphere faces smaller
-        sphereFaceScale -= 1.0 / CONVERSION_STEPS;
-        sphereTranslationX += 1.0 / CONVERSION_STEPS;
-
-        // increase cylinder height and translate it
-        cylinderHeight += maxCylinderHeight / CONVERSION_STEPS;
-        cylinderTranslationX += cylinderMaxTranslationX / CONVERSION_STEPS;
-      }
+      translateTowardsOctahedron();
       break;
 
     default:
@@ -176,39 +208,63 @@ void keyboardListener(unsigned char key, int x, int y) {
   glutPostRedisplay(); // Post a paint request to activate display()
 }
 
+void moveForward() {
+  eyePos.x += relativeLookingPoint.x;
+  eyePos.y += relativeLookingPoint.y;
+  eyePos.z += relativeLookingPoint.z;
+}
+
+void moveBackward() {
+  eyePos.x -= relativeLookingPoint.x;
+  eyePos.y -= relativeLookingPoint.y;
+  eyePos.z -= relativeLookingPoint.z;
+}
+
+void moveLeft() {
+  eyePos.x += rightDir.x;
+  eyePos.y += rightDir.y;
+  eyePos.z += rightDir.z;
+}
+
+void moveRight() {
+  eyePos.x -= rightDir.x;
+  eyePos.y -= rightDir.y;
+  eyePos.z -= rightDir.z;
+}
+
+void moveUp() {
+  eyePos.x += upPos.x;
+  eyePos.y += upPos.y;
+  eyePos.z += upPos.z;
+}
+
+void moveDown() {
+  eyePos.x -= upPos.x;
+  eyePos.y -= upPos.y;
+  eyePos.z -= upPos.z;
+}
+
 void specialKeyListener(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_UP: // down arrow key
-      eyePos.x += relativeLookingPoint.x;
-      eyePos.y += relativeLookingPoint.y;
-      eyePos.z += relativeLookingPoint.z;
+      moveForward();
       break;
     case GLUT_KEY_DOWN: // up arrow key
-      eyePos.x -= relativeLookingPoint.x;
-      eyePos.y -= relativeLookingPoint.y;
-      eyePos.z -= relativeLookingPoint.z;
+      moveBackward();
       break;
 
     case GLUT_KEY_RIGHT:
-      eyePos.x += rightDir.x;
-      eyePos.y += rightDir.y;
-      eyePos.z += rightDir.z;
+      moveLeft();
       break;
     case GLUT_KEY_LEFT:
-      eyePos.x -= rightDir.x;
-      eyePos.y -= rightDir.y;
-      eyePos.z -= rightDir.z;
+      moveRight();
       break;
 
     case GLUT_KEY_PAGE_UP:
-      eyePos.x += upPos.x;
-      eyePos.y += upPos.y;
-      eyePos.z += upPos.z;
+    moveUp();
       break;
     case GLUT_KEY_PAGE_DOWN:
-      eyePos.x -= upPos.x;
-      eyePos.y -= upPos.y;
-      eyePos.z -= upPos.z;
+      moveDown();
       break;
 
     default:
