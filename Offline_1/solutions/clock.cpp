@@ -133,7 +133,8 @@ void display() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  glColor3d(0.929, 0.973, 0.796);
+  // glColor3d(0.929, 0.973, 0.796);
+  glColor3d(0, 0.878, 0.439);
   glPushMatrix();
   glTranslated(0, -0.05, 0);
   glScaled(0.9, 0.9, 1);
@@ -143,7 +144,8 @@ void display() {
   glPushMatrix();
   glTranslated(0, 0.3, 0);
 
-  glColor3d(0, 0.878, 0.439);
+  // glColor3d(0, 0.878, 0.439);
+  glColor3d(0.929, 0.973, 0.796);
   drawCircleFilled(0, 0, 0.4, 100); // outer circle
   glColor3d(0, 0.192, 0.267);
   drawCircleFilled(0, 0, 0.3, 50); // inner circle
