@@ -2,6 +2,11 @@
 #include <iostream>
 #include <cmath>
 
+#define INIT_WINDOW_WIDTH 640
+#define INIT_WINDOW_HEIGHT 640
+#define INIT_WINDOW_POS_X 700
+#define INTI_WINDOW_POS_Y 200
+
 #define CONVERSION_STEPS 16
 
 struct point {
@@ -10,10 +15,10 @@ struct point {
 
 // Global variables
 const GLfloat rotationAmount = 10; 
-const GLfloat cameraMoveAmount = 0.1;
+const GLfloat cameraMoveAmount = 0.05;
 GLfloat rotationAngle = 0;
 
-struct point eyePos, relativeLookingPoint, upPos, rightDir;
+struct point eyePos, lookAtDir, upDir, rightDir;
 GLfloat centerx = 0, centery = 0, centerz = 0;
 GLfloat upx = 0, upy = 1, upz = 0;
 
@@ -62,63 +67,63 @@ void reshapeListener(GLsizei width, GLsizei height) {
 }
 
 void lookLeft() {
-  rightDir.x = rightDir.x * cos(cameraMoveAmount) + relativeLookingPoint.x * sin(cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(cameraMoveAmount) + relativeLookingPoint.y * sin(cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(cameraMoveAmount) + relativeLookingPoint.z * sin(cameraMoveAmount);
+  rightDir.x = rightDir.x * cos(cameraMoveAmount) + lookAtDir.x * sin(cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(cameraMoveAmount) + lookAtDir.y * sin(cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(cameraMoveAmount) + lookAtDir.z * sin(cameraMoveAmount);
 
-  relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
-  relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
-  relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
+  lookAtDir.x = lookAtDir.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
+  lookAtDir.y = lookAtDir.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
+  lookAtDir.z = lookAtDir.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
 }
 
 void lookRight() {
-  rightDir.x = rightDir.x * cos(-cameraMoveAmount) + relativeLookingPoint.x * sin(-cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(-cameraMoveAmount) + relativeLookingPoint.y * sin(-cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(-cameraMoveAmount) + relativeLookingPoint.z * sin(-cameraMoveAmount);
+  rightDir.x = rightDir.x * cos(-cameraMoveAmount) + lookAtDir.x * sin(-cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(-cameraMoveAmount) + lookAtDir.y * sin(-cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(-cameraMoveAmount) + lookAtDir.z * sin(-cameraMoveAmount);
 
-  relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
-  relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
-  relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
+  lookAtDir.x = lookAtDir.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
+  lookAtDir.y = lookAtDir.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
+  lookAtDir.z = lookAtDir.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
 }
 
 void lookUp() {
-  relativeLookingPoint.x = relativeLookingPoint.x * cos(cameraMoveAmount) + upPos.x * sin(cameraMoveAmount);
-  relativeLookingPoint.y = relativeLookingPoint.y * cos(cameraMoveAmount) + upPos.y * sin(cameraMoveAmount);
-  relativeLookingPoint.z = relativeLookingPoint.z * cos(cameraMoveAmount) + upPos.z * sin(cameraMoveAmount);
+  lookAtDir.x = lookAtDir.x * cos(cameraMoveAmount) + upDir.x * sin(cameraMoveAmount);
+  lookAtDir.y = lookAtDir.y * cos(cameraMoveAmount) + upDir.y * sin(cameraMoveAmount);
+  lookAtDir.z = lookAtDir.z * cos(cameraMoveAmount) + upDir.z * sin(cameraMoveAmount);
 
-  upPos.x = upPos.x * cos(cameraMoveAmount) - relativeLookingPoint.x * sin(cameraMoveAmount);
-  upPos.y = upPos.y * cos(cameraMoveAmount) - relativeLookingPoint.y * sin(cameraMoveAmount);
-  upPos.z = upPos.z * cos(cameraMoveAmount) - relativeLookingPoint.z * sin(cameraMoveAmount);
+  upDir.x = upDir.x * cos(cameraMoveAmount) - lookAtDir.x * sin(cameraMoveAmount);
+  upDir.y = upDir.y * cos(cameraMoveAmount) - lookAtDir.y * sin(cameraMoveAmount);
+  upDir.z = upDir.z * cos(cameraMoveAmount) - lookAtDir.z * sin(cameraMoveAmount);
 }
 
 void lookDown() {
-  relativeLookingPoint.x = relativeLookingPoint.x * cos(-cameraMoveAmount) + upPos.x * sin(-cameraMoveAmount);
-  relativeLookingPoint.y = relativeLookingPoint.y * cos(-cameraMoveAmount) + upPos.y * sin(-cameraMoveAmount);
-  relativeLookingPoint.z = relativeLookingPoint.z * cos(-cameraMoveAmount) + upPos.z * sin(-cameraMoveAmount);
+  lookAtDir.x = lookAtDir.x * cos(-cameraMoveAmount) + upDir.x * sin(-cameraMoveAmount);
+  lookAtDir.y = lookAtDir.y * cos(-cameraMoveAmount) + upDir.y * sin(-cameraMoveAmount);
+  lookAtDir.z = lookAtDir.z * cos(-cameraMoveAmount) + upDir.z * sin(-cameraMoveAmount);
 
-  upPos.x = upPos.x * cos(-cameraMoveAmount) - relativeLookingPoint.x * sin(-cameraMoveAmount);
-  upPos.y = upPos.y * cos(-cameraMoveAmount) - relativeLookingPoint.y * sin(-cameraMoveAmount);
-  upPos.z = upPos.z * cos(-cameraMoveAmount) - relativeLookingPoint.z * sin(-cameraMoveAmount);
+  upDir.x = upDir.x * cos(-cameraMoveAmount) - lookAtDir.x * sin(-cameraMoveAmount);
+  upDir.y = upDir.y * cos(-cameraMoveAmount) - lookAtDir.y * sin(-cameraMoveAmount);
+  upDir.z = upDir.z * cos(-cameraMoveAmount) - lookAtDir.z * sin(-cameraMoveAmount);
 }
 
 void tiltCounterClockwise() {
-  upPos.x = upPos.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
-  upPos.y = upPos.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
-  upPos.z = upPos.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
+  upDir.x = upDir.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
+  upDir.y = upDir.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
+  upDir.z = upDir.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
 
-  rightDir.x = rightDir.x * cos(cameraMoveAmount) - upPos.x * sin(cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(cameraMoveAmount) - upPos.y * sin(cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(cameraMoveAmount) - upPos.z * sin(cameraMoveAmount);
+  rightDir.x = rightDir.x * cos(cameraMoveAmount) - upDir.x * sin(cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(cameraMoveAmount) - upDir.y * sin(cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(cameraMoveAmount) - upDir.z * sin(cameraMoveAmount);
 }
 
 void tiltClockwise() {
-  upPos.x = upPos.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
-  upPos.y = upPos.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
-  upPos.z = upPos.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
+  upDir.x = upDir.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
+  upDir.y = upDir.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
+  upDir.z = upDir.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
 
-  rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upPos.x * sin(-cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upPos.y * sin(-cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upPos.z * sin(-cameraMoveAmount);
+  rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upDir.x * sin(-cameraMoveAmount);
+  rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upDir.y * sin(-cameraMoveAmount);
+  rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upDir.z * sin(-cameraMoveAmount);
 }
 
 void translateTowardsSphere() {
@@ -157,6 +162,82 @@ void translateTowardsOctahedron() {
   }
 }
 
+void moveForward() {
+  eyePos.x += lookAtDir.x * cameraMoveAmount;
+  eyePos.y += lookAtDir.y * cameraMoveAmount;
+  eyePos.z += lookAtDir.z * cameraMoveAmount;
+}
+
+void moveBackward() {
+  eyePos.x -= lookAtDir.x * cameraMoveAmount;
+  eyePos.y -= lookAtDir.y * cameraMoveAmount;
+  eyePos.z -= lookAtDir.z * cameraMoveAmount;
+}
+
+void moveLeft() {
+  eyePos.x += rightDir.x;
+  eyePos.y += rightDir.y;
+  eyePos.z += rightDir.z;
+}
+
+void moveRight() {
+  eyePos.x -= rightDir.x;
+  eyePos.y -= rightDir.y;
+  eyePos.z -= rightDir.z;
+}
+
+void moveUp() {
+  eyePos.x += upDir.x;
+  eyePos.y += upDir.y;
+  eyePos.z += upDir.z;
+}
+
+void moveDown() {
+  eyePos.x -= upDir.x;
+  eyePos.y -= upDir.y;
+  eyePos.z -= upDir.z;
+}
+
+void moveUpWithoutChangingReference() {
+  struct point lookAtPoint;
+
+  lookAtPoint.x = eyePos.x + lookAtDir.x;
+  lookAtPoint.y = eyePos.y + lookAtDir.y;
+  lookAtPoint.z = eyePos.z + lookAtDir.z;
+
+  eyePos.x += upDir.x * cameraMoveAmount;
+  eyePos.y += upDir.y * cameraMoveAmount;
+  eyePos.z += upDir.z * cameraMoveAmount;
+
+  lookAtDir.x = lookAtPoint.x - eyePos.x;
+  lookAtDir.y = lookAtPoint.y - eyePos.y;
+  lookAtDir.z = lookAtPoint.z - eyePos.z;
+}
+
+void moveDownWithoutChangingReference() {
+  struct point lookAtPoint;
+
+  lookAtPoint.x = eyePos.x + lookAtDir.x;
+  lookAtPoint.y = eyePos.y + lookAtDir.y;
+  lookAtPoint.z = eyePos.z + lookAtDir.z;
+
+  eyePos.x -= upDir.x * cameraMoveAmount;
+  eyePos.y -= upDir.y * cameraMoveAmount;
+  eyePos.z -= upDir.z * cameraMoveAmount;
+
+  lookAtDir.x = lookAtPoint.x - eyePos.x;
+  lookAtDir.y = lookAtPoint.y - eyePos.y;
+  lookAtDir.z = lookAtPoint.z - eyePos.z;
+}
+
+void rotateClockwiseY() {
+  rotationAngle += rotationAmount;
+}
+
+void rotateAntiClockwiseY() {
+  rotationAngle -= rotationAmount;
+}
+
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
     case '1':
@@ -184,16 +265,16 @@ void keyboardListener(unsigned char key, int x, int y) {
       break;
 
     case 'a':
-      rotationAngle += rotationAmount;
+      rotateClockwiseY();
       break;
     case 'd':
-      rotationAngle -= rotationAmount;
+      rotateAntiClockwiseY();
       break;
     case 'w':
-      eyePos.y += cameraMoveAmount;
+      moveUpWithoutChangingReference();
       break;
     case 's':
-      eyePos.y -= cameraMoveAmount;
+      moveDownWithoutChangingReference();
       break;
     case ',':
       translateTowardsSphere();
@@ -205,43 +286,7 @@ void keyboardListener(unsigned char key, int x, int y) {
     default:
       return;
   }
-  glutPostRedisplay(); // Post a paint request to activate display()
-}
-
-void moveForward() {
-  eyePos.x += relativeLookingPoint.x;
-  eyePos.y += relativeLookingPoint.y;
-  eyePos.z += relativeLookingPoint.z;
-}
-
-void moveBackward() {
-  eyePos.x -= relativeLookingPoint.x;
-  eyePos.y -= relativeLookingPoint.y;
-  eyePos.z -= relativeLookingPoint.z;
-}
-
-void moveLeft() {
-  eyePos.x += rightDir.x;
-  eyePos.y += rightDir.y;
-  eyePos.z += rightDir.z;
-}
-
-void moveRight() {
-  eyePos.x -= rightDir.x;
-  eyePos.y -= rightDir.y;
-  eyePos.z -= rightDir.z;
-}
-
-void moveUp() {
-  eyePos.x += upPos.x;
-  eyePos.y += upPos.y;
-  eyePos.z += upPos.z;
-}
-
-void moveDown() {
-  eyePos.x -= upPos.x;
-  eyePos.y -= upPos.y;
-  eyePos.z -= upPos.z;
+  glutPostRedisplay();  // Post a paint request to activate display()
 }
 
 void specialKeyListener(int key, int x, int y) {
@@ -501,8 +546,8 @@ void display()
 
   // control viewing (or camera)
   gluLookAt(eyePos.x, eyePos.y, eyePos.z,
-            eyePos.x + relativeLookingPoint.x, eyePos.y + relativeLookingPoint.y, eyePos.z + relativeLookingPoint.z,
-            upPos.x, upPos.y, upPos.z);
+            eyePos.x + lookAtDir.x, eyePos.y + lookAtDir.y, eyePos.z + lookAtDir.z,
+            upDir.x, upDir.y, upDir.z);
 
   if (isAxes)
     drawAxes();
@@ -547,19 +592,25 @@ int main(int argc, char **argv)
   eyePos.y = 0;
   eyePos.z = 8;
 
-  relativeLookingPoint.x = 0;
-  relativeLookingPoint.y = 0;
-  relativeLookingPoint.z = -1;
-  upPos.x = 0;
-  upPos.y = 1;
-  upPos.z = 0;
+  lookAtDir.x = 0;
+  lookAtDir.y = 0;
+  lookAtDir.z = -8;
+
+  upDir.x = 0;
+  upDir.y = 1;
+  upDir.z = 0;
+  
   rightDir.x = 1;
   rightDir.y = 0;
   rightDir.z = 0;
 
   glutInit(&argc, argv);                                    // Initialize GLUT
-  glutInitWindowSize(640, 640);                             // Set the window's initial width & height
-  glutInitWindowPosition(50, 50);                           // Position the window's initial top-left corner
+  glutInitWindowSize(
+      INIT_WINDOW_WIDTH, 
+      INIT_WINDOW_HEIGHT);                                  // Set the window's initial width & height
+  glutInitWindowPosition(
+      INIT_WINDOW_POS_X, 
+      INTI_WINDOW_POS_Y);                                   // Position the window's initial top-left corner
   glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB); // Depth, Double buffer, RGB color
   glutCreateWindow("Magic Cube");                           // Create a window with the given title
   glutDisplayFunc(display);                                 // Register display callback handler for window re-paint
