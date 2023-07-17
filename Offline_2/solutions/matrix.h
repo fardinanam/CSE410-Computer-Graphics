@@ -2,7 +2,6 @@
 #define MATRIX_H
 
 #include <iostream>
-#include "vector3D.h"
 
 class Matrix {
 private:
@@ -20,7 +19,7 @@ public:
     double get(int i, int j) const;
     void set(int i, int j, double val);
 
-    Vector3D toVector3D() const;
+    // Vector3D toVector3D() const;
 
     double determinant() const;
     double cofactor(int, int) const;
