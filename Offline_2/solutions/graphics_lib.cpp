@@ -1,8 +1,10 @@
 #include "graphics_lib.h"
+#include "matrix.h"
 #include "vector3D.h"
 #include <iostream>
 #include <cmath>
 #include <fstream>
+#include <sstream>
 
 #define M_PI 3.14159265358979323846
 
@@ -133,10 +135,57 @@ Vector3D rodrigues(Vector3D v, Vector3D a, double angle) {
 void scene(std::string filename) {
     // read the file line by line
     std::ifstream sceneFile(filename);
+    std::ofstream stage1File("stage1.txt");
     std::string line;
 
     while (std::getline(sceneFile, line)) {
-        /* code */
+        if (line == "triangle") {
+            for (int i = 0; i < 3 && std::getline(sceneFile, line); i++) {
+                // read the coordinates of the triangle
+                std::istringstream iss(line);
+                double x, y, z;
+                iss >> x >> y >> z;
+
+                // transform the coordinates
+                Vector3D v = Vector3D(x, y, z);
+                v = m * v.toMatrix();
+
+                // draw the triangle (print for now)
+                stage1File << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+            }
+
+            stage1File << std::endl;
+        } else if (line == "translate") {
+            std::getline(sceneFile, line);
+            std::istringstream iss(line);
+
+            double tx, ty, tz;
+            iss >> tx >> ty >> tz;
+
+            translate(tx, ty, tz);
+        } else if (line == "scale") {
+            std::getline(sceneFile, line);
+            std::istringstream iss(line);
+
+            double sx, sy, sz;
+            iss >> sx >> sy >> sz;
+
+            scale(sx, sy, sz);
+        } else if (line == "rotate") {
+            std::getline(sceneFile, line);
+            std::istringstream iss(line);
+
+            double angle, ax, ay, az;
+            iss >> angle >> ax >> ay >> az;
+
+            rotate(angle, ax, ay, az);
+        } else if (line == "push") {
+            push();
+        } else if (line == "pop") {
+            pop();
+        } else if (line == "end") {
+            break;
+        }
     }
     
 }

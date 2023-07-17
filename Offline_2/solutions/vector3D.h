@@ -20,6 +20,8 @@ public:
     void setY(double y);
     void setZ(double z);
 
+    Matrix toMatrix() const;
+
     double magnitude() const;
     Vector3D normalize() const;
     Vector3D cross(const Vector3D &v) const;
@@ -27,11 +29,12 @@ public:
 
     Vector3D operator+(const Vector3D &v) const;
     Vector3D operator-(const Vector3D &v) const;
+    Vector3D operator*(double s) const;
+    Vector3D operator/(double s) const;
+    Vector3D operator=(const Matrix &m);
 
-    friend Vector3D operator*(double &s, const Vector3D &v);
-    friend Vector3D operator*(const Vector3D &v, double &s);
+    friend Vector3D operator*(double s, const Vector3D &v);
     friend Vector3D operator/(double &s, const Vector3D &v);
-    friend Vector3D operator/(const Vector3D &v, double &s);
     
     friend std::ostream &operator<<(std::ostream &out, const Vector3D &v);
 };

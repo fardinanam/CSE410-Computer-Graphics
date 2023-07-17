@@ -90,6 +90,18 @@ void Matrix::set(int i, int j, double val) {
 }
 
 /**
+ * Converts a 3x1 matrix to a Vector3D
+ * @return Vector3D
+*/
+Vector3D Matrix::toVector3D() const {
+    if (row != 3 || col != 1) {
+        throw "Matrix dimensions do not match";
+    }
+
+    return Vector3D(mat[0][0], mat[1][0], mat[2][0]);
+}
+
+/**
  * Adds two matrices
  * @param m matrix to be added
  * @return sum of the two matrices

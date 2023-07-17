@@ -1,4 +1,5 @@
 #include "vector3D.h"
+#include <cmath>
 
 Vector3D::Vector3D() {
     mat = Matrix(4, 1);
@@ -42,6 +43,10 @@ void Vector3D::setZ(double z) {
     mat.set(2, 0, z);
 }
 
+Matrix Vector3D::toMatrix() const {
+    return mat;
+}
+
 double Vector3D::magnitude() const {
     return sqrt(getX() * getX() + getY() * getY() + getZ() * getZ());
 }
@@ -70,16 +75,21 @@ Vector3D Vector3D::operator-(const Vector3D &v) const {
     return Vector3D(getX() - v.getX(), getY() - v.getY(), getZ() - v.getZ());
 }
 
-Vector3D operator*(double &s, const Vector3D &v) {
-    return Vector3D(v.getX() * s, v.getY() * s, v.getZ() * s);
+Vector3D Vector3D::operator*(double s) const {
+    return Vector3D(s * getX(), s * getY(), s * getZ());
 }
 
-Vector3D operator*(const Vector3D &v, double &s) {
-    return Vector3D(v.getX() * s, v.getY() * s, v.getZ() * s);
+Vector3D Vector3D::operator/(double s) const {
+    return Vector3D(getX() / s, getY() / s, getZ() / s);
 }
 
-Vector3D operator/(Vector3D &v, double &s) {
-    return Vector3D(v.getX() / s, v.getY() / s, v.getZ() / s);
+Vector3D Vector3D::operator=(const Matrix &m) {
+    mat = m;
+    return *this;
+}
+
+Vector3D operator*(double s, const Vector3D &v) {
+    return Vector3D(v.getX() * s, v.getY() * s, v.getZ() * s);
 }
 
 Vector3D operator/(double &s, Vector3D &v) {
