@@ -12,15 +12,20 @@
  * Creates a new scene with the 4x4 identity matrix as the
  * initial transformation.
 */
-void initScene() {
-    s = std::stack<Matrix>();
-    m = Matrix();
+Scene::Scene() {
+    m = Matrix(4, 4);
+    
+    for (int i = 0; i < 4; i++) {
+        m.set(i, i, 1);
+    }
 }
+
+Scene::~Scene() {}
 
 /**
  * Pushes the current transformation matrix onto the stack.
 */
-void push() {
+void Scene::push() {
     s.push(m);
 }
 
@@ -28,7 +33,7 @@ void push() {
  * Pops the top matrix from the stack and sets the current
  * transformation matrix to the popped matrix.
 */
-void pop() {
+void Scene::pop() {
     m = s.top();
     s.pop();
 }
@@ -41,7 +46,7 @@ void pop() {
  * @param ty The y component of the translation vector.
  * @param tz The z component of the translation vector.
 */
-void translate(double tx, double ty, double tz) {
+void Scene::translate(double tx, double ty, double tz) {
     // create a 4x4 translation matrix
     Matrix transMat = Matrix(4, 4);
     transMat.set(0, 3, tx);
@@ -64,7 +69,7 @@ void translate(double tx, double ty, double tz) {
  * @param sy The y component of the scaling vector.
  * @param sz The z component of the scaling vector.
 */
-void scale(double sx, double sy, double sz) {
+void Scene::scale(double sx, double sy, double sz) {
     // create a 4x4 scaling matrix
     Matrix scaleMat = Matrix(4, 4);
     scaleMat.set(0, 0, sx);
@@ -72,8 +77,12 @@ void scale(double sx, double sy, double sz) {
     scaleMat.set(2, 2, sz);
     scaleMat.set(3, 3, 1);
 
+    std::cout << scaleMat << std::endl;
+    std::cout << m << std::endl;
     // multiply the current matrix by the scaling matrix
-    m = scaleMat * m;
+    m = m * scaleMat;
+
+    std::cout << m << std::endl;
 }
 
 /**
@@ -85,7 +94,7 @@ void scale(double sx, double sy, double sz) {
  * @param ay The y component of the rotation vector.
  * @param az The z component of the rotation vector.
 */
-void rotate(double angle, double ax, double ay, double az) {
+void Scene::rotate(double angle, double ax, double ay, double az) {
     // create a 4x4 rotation matrix
     Vector3D a = Vector3D(ax, ay, az).normalize();
     Vector3D i = Vector3D(1, 0, 0);
@@ -132,7 +141,7 @@ Vector3D rodrigues(Vector3D v, Vector3D a, double angle) {
  * 
  * @param filename The name of the file containing the scene.
 */
-void scene(std::string filename) {
+void Scene::drawScene(std::string filename) {
     // read the file line by line
     std::ifstream sceneFile(filename);
     std::ofstream stage1File("stage1.txt");

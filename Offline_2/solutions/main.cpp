@@ -5,8 +5,8 @@ using namespace std;
 
 int main() {
     // read input from scene.txt file
-    initScene();
-    scene("Test Cases/1/scene.txt");
+    Scene scene;
+    scene.drawScene("Test Cases/2/scene.txt");
 
     return 0;
 }
