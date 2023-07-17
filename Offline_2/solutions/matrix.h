@@ -9,6 +9,7 @@ private:
     double **mat;
 
 public:
+    Matrix();
     Matrix(int row, int col);
     Matrix(const Matrix &m);
     ~Matrix();
@@ -23,6 +24,7 @@ public:
     Matrix adjoint() const;
     Matrix transpose() const;
     Matrix inverse() const;
+    Matrix normalize() const;
 
     Matrix operator+(const Matrix &m) const;
     Matrix operator-(const Matrix &m) const;
@@ -30,9 +32,8 @@ public:
     Matrix operator*(double val) const;
     Matrix operator/(double val) const;
     Matrix operator-() const;
-    Matrix operator+() const;
 
-    void operator=(const Matrix &m);
+    Matrix &operator=(const Matrix &m);
 
     bool operator==(const Matrix &m) const;
     bool operator!=(const Matrix &m) const;

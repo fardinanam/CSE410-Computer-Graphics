@@ -1,6 +1,11 @@
 #include "matrix.h"
 #include <cmath>
 
+Matrix::Matrix() {
+    row = 0;
+    col = 0;
+    mat = nullptr;
+}
 /**
  * Creates a matrix of size row x col
  * @param row number of rows
@@ -179,9 +184,9 @@ Matrix Matrix::operator/(double val) const {
  * @param m matrix to be assigned
  * @return void
 */
-void Matrix::operator=(const Matrix &m) {
+Matrix &Matrix::operator=(const Matrix &m) {
     if (this == &m) {
-        return;
+        return *this;
     }
 
     if (row != m.row || col != m.col) {
@@ -201,6 +206,8 @@ void Matrix::operator=(const Matrix &m) {
             mat[i][j] = m.mat[i][j];
         }
     }
+
+    return *this;
 }
 
 /**
@@ -356,5 +363,20 @@ Matrix Matrix::inverse() const {
 
     Matrix adj = adjoint();
     result = adj / det;
+    return result;
+}
+
+/**
+ * Converts the matrix to its normal form
+ * @return Matrix
+*/
+Matrix Matrix::normalize() const {
+    Matrix result(row, col);
+    double det = determinant();
+    if (det == 0) {
+        throw "Matrix is not invertible";
+    }
+
+    result = *this / det;
     return result;
 }
