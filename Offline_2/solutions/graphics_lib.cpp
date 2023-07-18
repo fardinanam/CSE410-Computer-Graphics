@@ -58,7 +58,9 @@ void Scene::translate(double tx, double ty, double tz) {
     }
 
     // multiply the current matrix by the translation matrix
-    m = transMat * m;
+    m = m * transMat;
+
+    // std::cout << m << std::endl;
 }
 
 /**
@@ -77,12 +79,8 @@ void Scene::scale(double sx, double sy, double sz) {
     scaleMat.set(2, 2, sz);
     scaleMat.set(3, 3, 1);
 
-    std::cout << scaleMat << std::endl;
-    std::cout << m << std::endl;
     // multiply the current matrix by the scaling matrix
     m = m * scaleMat;
-
-    std::cout << m << std::endl;
 }
 
 /**
@@ -119,6 +117,8 @@ void Scene::rotate(double angle, double ax, double ay, double az) {
     rotMat.set(2, 2, c3.getZ());
 
     rotMat.set(3, 3, 1);
+
+    m = m * rotMat;
 }
 
 /**
