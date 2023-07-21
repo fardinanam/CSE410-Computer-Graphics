@@ -606,6 +606,7 @@ void display()
 
   GLfloat x = 3 * cosf(theta);
   GLfloat z = 3 * sinf(theta);
+  glRotated(-theta, 0, 1, 0);
   glTranslated(x, 0, z);
   glRotated(theta * 100, 0, 0, 1);
   if (isSphere) {

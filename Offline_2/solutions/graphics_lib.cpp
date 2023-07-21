@@ -5,15 +5,20 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 #define M_PI 3.14159265358979323846
 
 /**
  * Creates a new scene with the 4x4 identity matrix as the
- * initial transformation.
+ * initial transformation. Eye is set to (0, 0, 1), look is set to (0, 0, 0)
+ * and up is set to (0, 1, 0)
 */
 Scene::Scene() {
     m = Matrix(4, 4);
+    rightDir = Vector3D(1, 0, 0);
+    lookDir = Vector3D(0, 0, -1);
+    upDir = Vector3D(0, 1, 0);
     
     for (int i = 0; i < 4; i++) {
         m.set(i, i, 1);
@@ -21,6 +26,37 @@ Scene::Scene() {
 }
 
 Scene::~Scene() {}
+
+/**
+ * Calculates the camera axes from eye position, look at 
+ * position and up direction and save the new points in 
+ * the stage2 file
+ * 
+ * @param eyeX The x component of the eye position.
+ * @param eyeY The y component of the eye position.
+ * @param eyeZ The z component of the eye position.
+ * @param lookX The x component of the look at position.
+ * @param lookY The y component of the look at position.
+ * @param lookZ The z component of the look at position.
+ * @param upX The x component of the up direction.
+ * @param upY The y component of the up direction.
+ * @param upZ The z component of the up direction.
+*/
+void Scene::lookAt(double eyeX, double eyeY, double eyeZ, double lookX, double lookY, double lookZ, 
+                double upX, double upY, double upZ) {
+    Vector3D lookAt(lookX, lookY, lookZ);
+    Vector3D up(upX, upY, upZ);
+    eyePos = Vector3D(eyeX, eyeY, eyeZ);
+
+    // calculate the look direction
+    lookDir = (lookAt - eyePos).normalize();
+
+    // calculate the right direction
+    rightDir = lookDir.cross(up).normalize();
+
+    // calculate the up direction
+    upDir = rightDir.cross(lookDir).normalize();
+}
 
 /**
  * Pushes the current transformation matrix onto the stack.
@@ -137,6 +173,64 @@ Vector3D rodrigues(Vector3D v, Vector3D a, double angle) {
 }
 
 /**
+ * Transforms the view of the scene by multiplying the current view transformation matrix
+*/
+void Scene::transformView() {
+    // create the view matrix
+    Matrix T = Matrix(4, 4);
+    T.set(0, 3, -eyePos.getX());
+    T.set(1, 3, -eyePos.getY());
+    T.set(2, 3, -eyePos.getZ());
+
+    for (int i = 0; i < 4; i++) {
+        T.set(i, i, 1);
+    }
+
+    Matrix R = Matrix(4, 4);
+    R.set(0, 0, rightDir.getX());
+    R.set(0, 1, rightDir.getY());
+    R.set(0, 2, rightDir.getZ());
+
+    R.set(1, 0, upDir.getX());
+    R.set(1, 1, upDir.getY());
+    R.set(1, 2, upDir.getZ());
+
+    R.set(2, 0, -lookDir.getX());
+    R.set(2, 1, -lookDir.getY());
+    R.set(2, 2, -lookDir.getZ());
+
+    R.set(3, 3, 1);
+
+    Matrix V = R * T;
+
+    // std::cout << "R:\n" << R << std::endl;
+    // std::cout << "T:\n" << T << std::endl;
+    // std::cout << "V:\n" << V << std::endl;
+
+    // transform all the points of stage 1 with the new 
+    // view matrix and save them in stage 2
+    std::ifstream stage1File(stage1Filename);
+    std::ofstream stage2File(stage2Filename);
+    std::string line;
+    
+    while (std::getline(stage1File, line)) {
+        if (line == "") {
+            stage2File << std::endl;
+            continue;
+        }
+
+        std::istringstream iss(line);
+        double x, y, z;
+        iss >> x >> y >> z;
+
+        Vector3D v = Vector3D(x, y, z);
+        v = Vector3D(V * v.toMatrix());
+
+        stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+    }
+}
+
+/**
  * Reads the scene from a file and executes the commands.
  * 
  * @param filename The name of the file containing the scene.
@@ -144,11 +238,34 @@ Vector3D rodrigues(Vector3D v, Vector3D a, double angle) {
 void Scene::drawScene(std::string filename) {
     // read the file line by line
     std::ifstream sceneFile(filename);
-    std::ofstream stage1File("stage1.txt");
+    std::ofstream stage1File(stage1Filename);
     std::string line;
+    double eyeX, eyeY, eyeZ;
+    double lookX, lookY, lookZ;
+    double upX, upY, upZ;
 
+    int lineno = 0;
     while (std::getline(sceneFile, line)) {
-        if (line == "triangle") {
+        lineno++;
+
+        if (lineno == 1) {
+            std::istringstream iss(line);
+            iss >> eyeX >> eyeY >> eyeZ;
+        } else if (lineno == 2) {
+            std::istringstream iss(line); 
+            iss >> lookX >> lookY >> lookZ;
+        } else if (lineno == 3) {
+            std::istringstream iss(line);
+            iss >> upX >> upY >> upZ;
+
+            lookAt(eyeX, eyeY, eyeZ,
+                    lookX, lookY, lookZ,
+                    upX, upY, upZ);
+            // std::cout << "eyePos:" <<  eyePos << std::endl;
+            // std::cout << "lookDir" << lookDir << std::endl;
+            // std::cout << "rightDir" << rightDir << std::endl;
+            // std::cout << "upDir" << upDir << std::endl;
+        } else if (line == "triangle") {
             for (int i = 0; i < 3 && std::getline(sceneFile, line); i++) {
                 // read the coordinates of the triangle
                 std::istringstream iss(line);
@@ -160,7 +277,7 @@ void Scene::drawScene(std::string filename) {
                 v = m * v.toMatrix();
 
                 // draw the triangle (print for now)
-                stage1File << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+                stage1File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
             }
 
             stage1File << std::endl;
@@ -196,5 +313,9 @@ void Scene::drawScene(std::string filename) {
             break;
         }
     }
-    
+
+    stage1File.close();
+    sceneFile.close();
+
+    transformView();
 }

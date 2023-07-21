@@ -14,6 +14,15 @@ Vector3D::Vector3D(double x, double y, double z) : Vector3D() {
     mat.set(3, 0, 1);
 }
 
+Vector3D::Vector3D(const Matrix &m) {
+    if (m.getRow() == 4 && m.getCol() == 1)
+        mat = m;
+    else if (m.getCol() == 4 && m.getRow() == 1)
+        mat = m.transpose();
+    else
+        throw std::invalid_argument("Matrix must be 4x1 or 1x4");
+}
+
 Vector3D::Vector3D(const Vector3D &v) {
     mat = v.mat;
 }

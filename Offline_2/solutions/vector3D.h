@@ -9,6 +9,7 @@ private:
 public:
     Vector3D();
     Vector3D(double x, double y, double z);
+    Vector3D(const Matrix &m);
     Vector3D(const Vector3D &v);
     ~Vector3D();
 

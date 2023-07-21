@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include <iostream>
 #include <cmath>
+#include <string>
 
 Matrix::Matrix() {
     row = 0;
@@ -90,18 +91,6 @@ void Matrix::set(int i, int j, double val) {
     mat[i][j] = val;
 }
 
-// /**
-//  * Converts a 3x1 matrix to a Vector3D
-//  * @return Vector3D
-// */
-// Vector3D Matrix::toVector3D() const {
-//     if (row != 3 || col != 1) {
-//         throw "Matrix dimensions do not match";
-//     }
-
-//     return Vector3D(mat[0][0], mat[1][0], mat[2][0]);
-// }
-
 /**
  * Adds two matrices
  * @param m matrix to be added
@@ -147,7 +136,8 @@ Matrix Matrix::operator-(const Matrix &m) const {
 */
 Matrix Matrix::operator*(const Matrix &m) const {
     if (col != m.row) {
-        throw "Matrix dimensions do not match";
+        throw "Matrices of dimensions " + std::to_string(row) + "x" + std::to_string(col) 
+            + " and " + std::to_string(m.row) + "x" + std::to_string(m.col) + " cannot be multiplied";
     }
 
     Matrix result(row, m.col);
@@ -318,6 +308,7 @@ Matrix Matrix::transpose() const {
             result.mat[i][j] = mat[j][i];
         }
     }
+
     return result;
 }
 
