@@ -17,8 +17,7 @@ struct point {
 const GLfloat rotationAmount = 10; 
 const GLfloat cameraMoveAmount = 0.05;
 GLfloat rotationAngle = 0;
-GLfloat theta = 0;
- 
+
 struct point eyePos, lookAtDir, upDir, rightDir;
 GLfloat centerx = 0, centery = 0, centerz = 0;
 GLfloat upx = 0, upy = 1, upz = 0;
@@ -28,8 +27,8 @@ const GLfloat baseTriangleCentroidX = 0.3333, baseTriangleCentroidY = 0.3333, ba
 GLfloat baseTriangleCenterX = 0, baseTriangleCenterY = 0, baseTriangleCenterZ = 0;
 GLfloat baseTriangleScale = 1.0;
 
-GLfloat sphereFaceScale = 1;
-GLfloat sphereTranslationX = 0, sphereTranslationY = 0.0, sphereTranslationZ = 0.0;
+GLfloat sphereFaceScale = 0;
+GLfloat sphereTranslationX = 1.0, sphereTranslationY = 0.0, sphereTranslationZ = 0.0;
 
 const GLfloat maxCylinderHeight = sqrt(2.0);
 const GLfloat maxCylindeTheta = M_PI / 2.0;
@@ -266,12 +265,10 @@ void keyboardListener(unsigned char key, int x, int y) {
       break;
 
     case 'a':
-      // rotateClockwiseY();
-      theta += 10 * M_PI / 180;
+      rotateClockwiseY();
       break;
     case 'd':
-      // rotateAntiClockwiseY();
-      theta -= 10 * M_PI / 180;
+      rotateAntiClockwiseY();
       break;
     case 'w':
       moveUpWithoutChangingReference();
@@ -280,7 +277,7 @@ void keyboardListener(unsigned char key, int x, int y) {
       moveDownWithoutChangingReference();
       break;
     case ',':
-      // translateTowardsSphere();
+      translateTowardsSphere();
       break;
     case '.':
       translateTowardsOctahedron();
@@ -541,34 +538,6 @@ void drawOneCylinderSet() {
   glPopMatrix();
 }
 
-void drawCircle(GLfloat cx, GLfloat cy, GLfloat cz, GLfloat radius, int segments) {
-  glBegin(GL_LINE_LOOP);
-  for (int i = 0; i < segments; i++) {
-    float theta =
-        2.0f * M_PI * (GLfloat)i / (GLfloat)segments;  // get the current angle
-    GLfloat x = radius * cosf(theta);  // calculate the x component
-    GLfloat z = radius * sinf(theta);  // calculate the y component
-    glVertex3f(x + cx, cy, z + cz);        // output vertex
-  }
-  glEnd();
-}
-
-void drawRadii(GLfloat cx, GLfloat cy, GLfloat cz, GLfloat length, GLfloat radius,
-                  int n) {
-  glBegin(GL_LINES);
-  for (int i = 0; i < n; i++) {
-    float theta = 2.0f * M_PI * (GLfloat)i / (GLfloat)n;
-
-    GLfloat x1 = radius * cosf(theta);
-    GLfloat z1 = radius * sinf(theta);
-
-    glVertex3f(cx, cy, cz);
-    glVertex3f(x1, cy, z1);
-    // glEnd();
-  }
-  glEnd();
-}
-
 void display()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -583,50 +552,35 @@ void display()
   if (isAxes)
     drawAxes();
 
-  glColor3d(1, 1, 1);
-  for(int i = 0; i < 30; i++) {
-    drawCircle(0, -1, 0, i, 100);
-  }
-
-  drawRadii(0, -1, 0, 30, 30, 18);
-
-
   glScaled(2, 2, 2);
   glRotated(rotationAngle, 0, 1, 0);
 
-  // // draw the octahedron
-  // if (isOctahedron) {
-  //   glPushMatrix();
-  //   drawOctahedron();
-  //   glPopMatrix();
-  // }
+  // draw the octahedron
+  if (isOctahedron) {
+    glPushMatrix();
+    drawOctahedron();
+    glPopMatrix();
+  }
 
   // draw the sphere
-  glPushMatrix();
-
-  GLfloat x = 3 * cosf(theta);
-  GLfloat z = 3 * sinf(theta);
-  glTranslated(x, 0, z);
-  glRotated(theta * 100, 0, 0, 1);
   if (isSphere) {
     glPushMatrix();
     drawSphere(0.577);
     glPopMatrix();
   }
-  glPopMatrix();
 
-  // // draw the cylinder
-  // glPushMatrix();
-  // glColor3d(0.965, 0.6, 0.247);
+  // draw the cylinder
+  glPushMatrix();
+  glColor3d(0.965, 0.6, 0.247);
   
-  // drawOneCylinderSet();
+  drawOneCylinderSet();
 
-  // glRotated(90, 1, 0, 0);
-  // drawOneCylinderSet();
+  glRotated(90, 1, 0, 0);
+  drawOneCylinderSet();
 
-  // glRotated(90, 0, 0, 1);
-  // drawOneCylinderSet();
-  // glPopMatrix();
+  glRotated(90, 0, 0, 1);
+  drawOneCylinderSet();
+  glPopMatrix();
 
   glutSwapBuffers(); // Render now
 }
