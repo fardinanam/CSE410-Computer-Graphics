@@ -22,6 +22,7 @@ public:
     void setZ(double z);
 
     Matrix toMatrix() const;
+    Matrix toHomogeneousMatrix() const;
 
     double magnitude() const;
     Vector3D normalize() const;

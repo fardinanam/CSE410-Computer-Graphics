@@ -224,7 +224,7 @@ void Scene::transformView() {
         iss >> x >> y >> z;
 
         Vector3D v = Vector3D(x, y, z);
-        v = Vector3D(V * v.toMatrix());
+        v = Vector3D(V * v.toHomogeneousMatrix());
 
         stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
     }
@@ -274,7 +274,7 @@ void Scene::drawScene(std::string filename) {
 
                 // transform the coordinates
                 Vector3D v = Vector3D(x, y, z);
-                v = m * v.toMatrix();
+                v = Vector3D(m * v.toHomogeneousMatrix());
 
                 // draw the triangle (print for now)
                 stage1File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
