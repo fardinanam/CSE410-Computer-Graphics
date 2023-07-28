@@ -380,7 +380,7 @@ Matrix Matrix::normalize() const {
     if (det == 0) {
         throw "Matrix is not invertible";
     }
-
+    
     result = *this / det;
     return result;
 }

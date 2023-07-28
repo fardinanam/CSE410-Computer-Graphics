@@ -16,11 +16,19 @@ private:
     Vector3D rightDir;
     Vector3D upDir;
 
+    double fovY, aspectRatio, near, far;
+
+    std::string inputFilename;
     const std::string stage1Filename = "stage1.txt";
     const std::string stage2Filename = "stage2.txt";
-    const std::string stage3Filename = "stage3.txt"; 
+    const std::string stage3Filename = "stage3.txt";
+
+    void modelTransformation();
+    void transformView();
+    void transformProjection();
+
 public:
-    Scene();
+    Scene(std::string inputFilename);
     ~Scene();
     
     void push();
@@ -33,8 +41,7 @@ public:
     void rotate(double angle, double ax, double ay, double az);
     void scale(double sx, double sy, double sz);
 
-    void transformView();
-    void drawScene(std::string filename);
+    void draw();
 };
 
 #endif // GRAPHICS_LIB_H

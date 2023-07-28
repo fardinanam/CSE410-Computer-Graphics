@@ -13,20 +13,24 @@ Vector3D::Vector3D(double x, double y, double z) : Vector3D() {
 }
 
 Vector3D::Vector3D(const Matrix &m) : Vector3D() {
-    if (m.getRow() == 4 && m.getCol() == 1 && m.get(3, 0) == 1) {
+    if (m.getRow() == 4 && m.getCol() == 1) {
         mat.set(0, 0, m.get(0, 0));
         mat.set(0, 1, m.get(1, 0));
         mat.set(0, 2, m.get(2, 0));
+
+        mat = mat / m.get(3, 0);
     } else if (m.getRow() == 3 && m.getCol() == 1) {
         mat = m.transpose(); 
-    } else if (m.getCol() == 4 && m.getRow() == 1 && m.get(0, 3) == 1) {
+    } else if (m.getCol() == 4 && m.getRow() == 1) {
         mat.set(0, 0, m.get(0, 0));
         mat.set(0, 1, m.get(0, 1));
         mat.set(0, 2, m.get(0, 2));
+
+        mat = mat / m.get(0, 3);
     } else if (m.getCol() == 3 && m.getRow() == 1) {
         mat = m;
     } else {
-        throw std::invalid_argument("Matrix must be 3x1 or 1x3 or 4x1 or 1x4 with the last element (0, 3) or (3, 0) being 1");
+        throw std::invalid_argument("Matrix must be 3x1 or 1x3 or 4x1 or 1x4");
     }
 }
 

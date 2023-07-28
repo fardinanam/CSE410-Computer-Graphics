@@ -14,7 +14,9 @@
  * initial transformation. Eye is set to (0, 0, 1), look is set to (0, 0, 0)
  * and up is set to (0, 1, 0)
 */
-Scene::Scene() {
+Scene::Scene(const std::string inputFilename) {
+    this->inputFilename = inputFilename;
+
     m = Matrix(4, 4);
     rightDir = Vector3D(1, 0, 0);
     lookDir = Vector3D(0, 0, -1);
@@ -173,71 +175,13 @@ Vector3D rodrigues(Vector3D v, Vector3D a, double angle) {
 }
 
 /**
- * Transforms the view of the scene by multiplying the current view transformation matrix
+ * models the basic transformations of the scene 
+ * (without considering eye position and perspective) 
+ * and saves the transformed points in stage 1
 */
-void Scene::transformView() {
-    // create the view matrix
-    Matrix T = Matrix(4, 4);
-    T.set(0, 3, -eyePos.getX());
-    T.set(1, 3, -eyePos.getY());
-    T.set(2, 3, -eyePos.getZ());
-
-    for (int i = 0; i < 4; i++) {
-        T.set(i, i, 1);
-    }
-
-    Matrix R = Matrix(4, 4);
-    R.set(0, 0, rightDir.getX());
-    R.set(0, 1, rightDir.getY());
-    R.set(0, 2, rightDir.getZ());
-
-    R.set(1, 0, upDir.getX());
-    R.set(1, 1, upDir.getY());
-    R.set(1, 2, upDir.getZ());
-
-    R.set(2, 0, -lookDir.getX());
-    R.set(2, 1, -lookDir.getY());
-    R.set(2, 2, -lookDir.getZ());
-
-    R.set(3, 3, 1);
-
-    Matrix V = R * T;
-
-    // std::cout << "R:\n" << R << std::endl;
-    // std::cout << "T:\n" << T << std::endl;
-    // std::cout << "V:\n" << V << std::endl;
-
-    // transform all the points of stage 1 with the new 
-    // view matrix and save them in stage 2
-    std::ifstream stage1File(stage1Filename);
-    std::ofstream stage2File(stage2Filename);
-    std::string line;
-    
-    while (std::getline(stage1File, line)) {
-        if (line == "") {
-            stage2File << std::endl;
-            continue;
-        }
-
-        std::istringstream iss(line);
-        double x, y, z;
-        iss >> x >> y >> z;
-
-        Vector3D v = Vector3D(x, y, z);
-        v = Vector3D(V * v.toHomogeneousMatrix());
-
-        stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
-    }
-}
-
-/**
- * Reads the scene from a file and executes the commands.
- * 
- * @param filename The name of the file containing the scene.
-*/
-void Scene::drawScene(std::string filename) {
+void Scene::modelTransformation() {
     // read the file line by line
-    std::ifstream sceneFile(filename);
+    std::ifstream sceneFile(inputFilename);
     std::ofstream stage1File(stage1Filename);
     std::string line;
     double eyeX, eyeY, eyeZ;
@@ -249,22 +193,24 @@ void Scene::drawScene(std::string filename) {
         lineno++;
 
         if (lineno == 1) {
+            // parse eye position
             std::istringstream iss(line);
             iss >> eyeX >> eyeY >> eyeZ;
         } else if (lineno == 2) {
-            std::istringstream iss(line); 
+            // parse look at position
+            std::istringstream iss(line);
             iss >> lookX >> lookY >> lookZ;
         } else if (lineno == 3) {
+            // parse up direction
             std::istringstream iss(line);
             iss >> upX >> upY >> upZ;
 
-            lookAt(eyeX, eyeY, eyeZ,
-                    lookX, lookY, lookZ,
-                    upX, upY, upZ);
-            // std::cout << "eyePos:" <<  eyePos << std::endl;
-            // std::cout << "lookDir" << lookDir << std::endl;
-            // std::cout << "rightDir" << rightDir << std::endl;
-            // std::cout << "upDir" << upDir << std::endl;
+            // set the view matrix
+            lookAt(eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+        } else if (lineno == 4) {
+            // parse the projection parameters
+            std::istringstream iss(line);
+            iss >> fovY >> aspectRatio >> near >> far;
         } else if (line == "triangle") {
             for (int i = 0; i < 3 && std::getline(sceneFile, line); i++) {
                 // read the coordinates of the triangle
@@ -277,7 +223,8 @@ void Scene::drawScene(std::string filename) {
                 v = Vector3D(m * v.toHomogeneousMatrix());
 
                 // draw the triangle (print for now)
-                stage1File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+                stage1File << std::fixed << std::setprecision(7) << v.getX() << " "
+                        << v.getY() << " " << v.getZ() << std::endl;
             }
 
             stage1File << std::endl;
@@ -316,6 +263,113 @@ void Scene::drawScene(std::string filename) {
 
     stage1File.close();
     sceneFile.close();
+}
 
+/**
+ * Transforms the view of the scene by multiplying the current view transformation matrix
+*/
+void Scene::transformView() {
+    // create the view matrix
+    Matrix T = Matrix(4, 4);
+    T.set(0, 3, -eyePos.getX());
+    T.set(1, 3, -eyePos.getY());
+    T.set(2, 3, -eyePos.getZ());
+
+    for (int i = 0; i < 4; i++) {
+        T.set(i, i, 1);
+    }
+
+    Matrix R = Matrix(4, 4);
+    R.set(0, 0, rightDir.getX());
+    R.set(0, 1, rightDir.getY());
+    R.set(0, 2, rightDir.getZ());
+
+    R.set(1, 0, upDir.getX());
+    R.set(1, 1, upDir.getY());
+    R.set(1, 2, upDir.getZ());
+
+    R.set(2, 0, -lookDir.getX());
+    R.set(2, 1, -lookDir.getY());
+    R.set(2, 2, -lookDir.getZ());
+
+    R.set(3, 3, 1);
+
+    Matrix V = R * T;
+
+    // transform all the points of stage 1 with the new 
+    // view matrix and save them in stage 2
+    std::ifstream stage1File(stage1Filename);
+    std::ofstream stage2File(stage2Filename);
+    std::string line;
+    
+    while (std::getline(stage1File, line)) {
+        if (line == "") {
+            stage2File << std::endl;
+            continue;
+        }
+
+        std::istringstream iss(line);
+        double x, y, z;
+        iss >> x >> y >> z;
+
+        Vector3D v = Vector3D(x, y, z);
+        v = Vector3D(V * v.toHomogeneousMatrix());
+
+        stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+    }
+
+    stage2File.close();
+    stage1File.close();
+}
+
+/**
+ * Transforms the projection of the scene by multiplying the current projection transformation matrix
+ * and saves the transformed points in stage 3
+*/
+void Scene::transformProjection() {
+    double fovX = fovY * aspectRatio;
+    double t = near * tan(fovY * M_PI / 360.0);
+    double r = near * tan(fovX * M_PI / 360.0);
+
+    Matrix P = Matrix(4, 4);
+    P.set(0, 0, near / r);
+    P.set(1, 1, near / t);
+    P.set(2, 2, -(far + near) / (far - near));
+    P.set(2, 3, -(2 * far * near) / (far - near));
+    P.set(3, 2, -1);
+
+    std::ifstream stage2File(stage2Filename);
+    std::ofstream stage3File(stage3Filename);
+
+    std::string line;
+
+    while (std::getline(stage2File, line)) {
+        if (line == "") {
+            stage3File << std::endl;
+            continue;
+        }
+
+        std::istringstream iss(line);
+        double x, y, z;
+        iss >> x >> y >> z;
+
+        Vector3D v = Vector3D(x, y, z);
+        v = Vector3D(P * v.toHomogeneousMatrix());
+
+        stage3File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+    }
+
+    stage3File.close();
+    stage2File.close();
+}
+
+/**
+ * Reads the scene from a file and executes the commands.
+ * 
+ * @param filename The name of the file containing the scene.
+*/
+void Scene::draw() {
+    modelTransformation();
     transformView();
+    transformProjection();
 }
