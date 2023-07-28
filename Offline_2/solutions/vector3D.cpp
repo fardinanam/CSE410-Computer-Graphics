@@ -12,6 +12,11 @@ Vector3D::Vector3D(double x, double y, double z) : Vector3D() {
     mat.set(0, 2, z);
 }
 
+/**
+ * Converts a 3x1 or 1x3 or 4x1 or 1x4 matrix to a Vector3D
+ * If the matrix is 4x1 or 1x4, it is devided by the last element
+ * to make it a homogeneous matrix
+*/
 Vector3D::Vector3D(const Matrix &m) : Vector3D() {
     if (m.getRow() == 4 && m.getCol() == 1) {
         mat.set(0, 0, m.get(0, 0));

@@ -364,9 +364,7 @@ void Scene::transformProjection() {
 }
 
 /**
- * Reads the scene from a file and executes the commands.
- * 
- * @param filename The name of the file containing the scene.
+ * Reads the scene from input file and executes the commands.
 */
 void Scene::draw() {
     modelTransformation();
