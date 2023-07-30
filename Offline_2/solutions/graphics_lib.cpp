@@ -1,6 +1,7 @@
 #include "graphics_lib.h"
 #include "matrix.h"
 #include "vector3D.h"
+#include "bitmap_image.hpp"
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -14,8 +15,9 @@
  * initial transformation. Eye is set to (0, 0, 1), look is set to (0, 0, 0)
  * and up is set to (0, 1, 0)
 */
-Scene::Scene(const std::string inputFilename) {
+Scene::Scene(const std::string inputFilename, const std::string configFilename) {
     this->inputFilename = inputFilename;
+    this->configFilename = configFilename;
 
     m = Matrix(4, 4);
     rightDir = Vector3D(1, 0, 0);
@@ -25,9 +27,32 @@ Scene::Scene(const std::string inputFilename) {
     for (int i = 0; i < 4; i++) {
         m.set(i, i, 1);
     }
+
+    parseConfig();
+    initializeZBuffer();
+    initializeBitmapImg();
 }
 
-Scene::~Scene() {}
+Scene::~Scene() {
+    for (int i = 0; i < (int)screenHeight; i++) {
+        delete[] zBuffer[i];
+    }
+    delete[] zBuffer;
+}
+
+/**
+ * Parses the config file and sets the projection parameters.
+*/
+void Scene::parseConfig() {
+    // read from config file
+    std::ifstream configFile(configFilename);
+    std::string line;
+
+    // read the first line
+    std::getline(configFile, line);
+    std::istringstream iss(line);
+    iss >> screenWidth >> screenHeight;
+}
 
 /**
  * Calculates the camera axes from eye position, look at 
@@ -212,6 +237,8 @@ void Scene::modelTransformation() {
             std::istringstream iss(line);
             iss >> fovY >> aspectRatio >> near >> far;
         } else if (line == "triangle") {
+            std::vector<Vector3D> vertices;
+
             for (int i = 0; i < 3 && std::getline(sceneFile, line); i++) {
                 // read the coordinates of the triangle
                 std::istringstream iss(line);
@@ -222,10 +249,15 @@ void Scene::modelTransformation() {
                 Vector3D v = Vector3D(x, y, z);
                 v = Vector3D(m * v.toHomogeneousMatrix());
 
-                // draw the triangle (print for now)
+                // print the coordinates to the stage 1 file
                 stage1File << std::fixed << std::setprecision(7) << v.getX() << " "
                         << v.getY() << " " << v.getZ() << std::endl;
+                
+                vertices.push_back(v);
             }
+
+            Vector3D color(rand() % 256, rand() % 256, rand() % 256);
+            polygons.push_back(make_pair(vertices, color));
 
             stage1File << std::endl;
         } else if (line == "translate") {
@@ -298,28 +330,28 @@ void Scene::transformView() {
 
     // transform all the points of stage 1 with the new 
     // view matrix and save them in stage 2
-    std::ifstream stage1File(stage1Filename);
     std::ofstream stage2File(stage2Filename);
-    std::string line;
-    
-    while (std::getline(stage1File, line)) {
-        if (line == "") {
-            stage2File << std::endl;
-            continue;
+    std::vector<std::pair<std::vector<Vector3D>, Vector3D>> stage2Polygons;
+
+    for (auto polygon : polygons) {
+        std::vector<Vector3D> vertices = polygon.first;
+        Vector3D color = polygon.second;
+        std::vector<Vector3D> transformedVertices;
+
+        for (Vector3D v : vertices) {
+            v = Vector3D(V * v.toHomogeneousMatrix());
+
+            stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+
+            transformedVertices.push_back(v);
         }
 
-        std::istringstream iss(line);
-        double x, y, z;
-        iss >> x >> y >> z;
-
-        Vector3D v = Vector3D(x, y, z);
-        v = Vector3D(V * v.toHomogeneousMatrix());
-
-        stage2File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+        stage2File << std::endl;
+        stage2Polygons.push_back(make_pair(transformedVertices, color));
     }
 
     stage2File.close();
-    stage1File.close();
+    polygons = stage2Polygons;
 }
 
 /**
@@ -338,36 +370,183 @@ void Scene::transformProjection() {
     P.set(2, 3, -(2 * far * near) / (far - near));
     P.set(3, 2, -1);
 
-    std::ifstream stage2File(stage2Filename);
     std::ofstream stage3File(stage3Filename);
+    std::vector<std::pair<std::vector<Vector3D>, Vector3D>> stage3Polygons;
 
-    std::string line;
+    for(auto polygon : polygons) {
+        std::vector<Vector3D> vertices = polygon.first;
+        Vector3D color = polygon.second;
+        std::vector<Vector3D> transformedVertices;
 
-    while (std::getline(stage2File, line)) {
-        if (line == "") {
-            stage3File << std::endl;
-            continue;
+        for (Vector3D v : vertices) {
+            v = Vector3D(P * v.toHomogeneousMatrix());
+
+            stage3File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+
+            transformedVertices.push_back(v);
         }
 
-        std::istringstream iss(line);
-        double x, y, z;
-        iss >> x >> y >> z;
-
-        Vector3D v = Vector3D(x, y, z);
-        v = Vector3D(P * v.toHomogeneousMatrix());
-
-        stage3File << std::fixed << std::setprecision(7) << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
+        stage3File << std::endl;
+        stage3Polygons.push_back(make_pair(transformedVertices, color));
     }
 
     stage3File.close();
-    stage2File.close();
+    polygons = stage3Polygons;
+}
+
+void Scene::initializeZBuffer() {
+    zMax = zFrontLimit - zBackLimit;
+    dx = (zBufferRightLimit - zBufferLeftLimit) / screenWidth;
+    dy = (zBufferTopLimit - zBufferBottomLimit) / screenHeight;
+
+    topY = zBufferTopLimit - dy / 2;
+    leftX = zBufferLeftLimit + dx / 2;
+
+    zBuffer = new double*[(int)screenHeight];
+    for (int i = 0; i < (int)screenHeight; i++) {
+        zBuffer[i] = new double[(int)screenWidth];
+        for (int j = 0; j < (int)screenWidth; j++) {
+            zBuffer[i][j] = zMax;
+        }
+    }
+}
+
+void Scene::initializeBitmapImg() {
+    image.setwidth_height(screenWidth, screenHeight);
+
+    // set background to black
+    image.set_all_channels(0, 0, 0);
+
+    // image.save_image("out.bmp");
 }
 
 /**
- * Reads the scene from input file and executes the commands.
+ * for each object : polygons
+Find top_scanline and bottom_scanline after necessary clipping
+for row_no from top_scanline to bottom_scanline
+Find left_intersecting_column and right_intersecting_column
+after necessary clipping
+for col_no from left_intersecting_column to right_intersecting_column
+Calculate z values
+Compare with z-buffer and z_front_limit and update if required
+Update pixel information if required
+end
+end
+end
+* Note that you should not update a z-buffer value if the point’s z-coordinate <
+z_front_limit (invisible to the observer, but ignore its occlusion impact).
 */
+void Scene::transformToZBuffer() {
+    for (auto polygon : polygons) {
+        std::vector<Vector3D> vertices = polygon.first;
+        Vector3D color = polygon.second;
+
+        // find the top and bottom scanline
+        double minY = vertices[0].getY();
+        double maxY = vertices[0].getY();
+
+        for (Vector3D v : vertices) {
+            double vy = v.getY();
+            if (vy > maxY) {
+                maxY = vy;
+            }
+            if (vy < minY) {
+                minY = vy;
+            }
+        }
+
+        double topScanline = maxY < zBufferTopLimit ? maxY : zBufferTopLimit;
+        double bottomScanline = minY > zBufferBottomLimit ? minY : zBufferBottomLimit; 
+
+        // for row_no from top_scanline to bottom_scanline
+        int rowNo = (int)((bottomScanline - zBufferBottomLimit) / dy);
+        int topRowNo = (int)((topScanline - zBufferBottomLimit) / dy);
+
+        // std::cout << "rowNo: " << rowNo << std::endl;
+        // std::cout << "topRowNo: " << topRowNo << std::endl;
+        for(;rowNo <= topRowNo; rowNo++) {
+            // std::cout << "rowNo: " << rowNo << std::endl;
+            // Find left_intersecting_column and right_intersecting_column
+            // use geometry to find the intersecting points
+            
+            double y = rowNo * dy + zBufferBottomLimit;
+
+            double x1 = vertices[0].getX();
+            double y1 = vertices[0].getY();
+            double minX = x1;
+            double maxX = x1;
+
+            for (int i = 1; i <= vertices.size(); i++) {
+                int index = i % vertices.size();
+                double x2 = vertices[index].getX();
+                double y2 = vertices[index].getY();
+                
+                // if the line is entirely above or below the scanline, ignore
+                if ((y1 > y && y2 > y) || (y1 < y && y2 < y)) {
+                    x1 = x2;
+                    y1 = y2;
+                    continue;
+                }
+
+                if (y1 != y2) {
+                    double x = x1 + (x1 - x2) * (y - y1) / (y1 - y2);
+                    if (x > maxX) {
+                        maxX = x;
+                    }
+                    if (x < minX) {
+                        minX = x;
+                    }
+                } else {
+                    if (x2 > maxX) {
+                        maxX = x2;
+                    }
+                    if (x2 < minX) {
+                        minX = x2;
+                    }
+                }
+
+                x1 = x2;
+                y1 = y2;
+            } 
+
+            double leftIntersectingColumn = minX > zBufferLeftLimit ? minX : zBufferLeftLimit;
+            double rightIntersectingColumn = maxX < zBufferRightLimit ? maxX : zBufferRightLimit;
+
+            // for col_no from left_intersecting_column to right_intersecting_column
+            int colNo = (int)((leftIntersectingColumn - zBufferLeftLimit) / dx);
+            int rightColNo = (int)((rightIntersectingColumn - zBufferLeftLimit) / dx);
+
+            // std::cout << "colNo: " << colNo << std::endl;
+            // std::cout << "rightColNo: " << rightColNo << std::endl;
+
+            for(;colNo <= rightColNo; colNo++) {
+                // std::cout << "colNo: " << colNo << std::endl;
+                // Calculate z values using geometry
+                double x = colNo * dx + zBufferLeftLimit;
+                double z = 0;
+                
+
+                // Compare with z-buffer and z_front_limit and update if required
+                // std::cout << "zBuffer: " << zBuffer[rowNo][colNo] << std::endl;
+                // if (z > zBuffer[rowNo][colNo] && z < zFrontLimit) {
+                    
+                    zBuffer[rowNo][colNo] = z;
+                    // Update pixel information if required
+                    image.set_pixel(colNo, (int)screenHeight - rowNo, color.getX(), color.getY(), color.getZ());
+                // }
+            }
+        }
+
+    }
+    std::cout << "done" << std::endl;
+    image.save_image("out.bmp");
+}
+/**
+ * Reads the scene from input file and executes the commands.
+ */
 void Scene::draw() {
     modelTransformation();
     transformView();
     transformProjection();
+    transformToZBuffer();
 }
