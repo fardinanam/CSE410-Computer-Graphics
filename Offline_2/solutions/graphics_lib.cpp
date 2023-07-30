@@ -416,30 +416,28 @@ void Scene::initializeBitmapImg() {
 
     // set background to black
     image.set_all_channels(0, 0, 0);
-
-    // image.save_image("out.bmp");
 }
 
-/**
- * for each object : polygons
-Find top_scanline and bottom_scanline after necessary clipping
-for row_no from top_scanline to bottom_scanline
-Find left_intersecting_column and right_intersecting_column
-after necessary clipping
-for col_no from left_intersecting_column to right_intersecting_column
-Calculate z values
-Compare with z-buffer and z_front_limit and update if required
-Update pixel information if required
-end
-end
-end
-* Note that you should not update a z-buffer value if the point’s z-coordinate <
-z_front_limit (invisible to the observer, but ignore its occlusion impact).
-*/
+void calculateEquationOfPlane(Vector3D v1, Vector3D v2, Vector3D v3, double &A, double &B, double &C, double &D) {
+    Vector3D normal = ((v2 - v1).cross(v3 - v1)).normalize();
+    A = normal.getX();
+    B = normal.getY();
+    C = normal.getZ();
+    D = -(A * v1.getX() + B * v1.getY() + C * v1.getZ());
+}
+
 void Scene::transformToZBuffer() {
     for (auto polygon : polygons) {
         std::vector<Vector3D> vertices = polygon.first;
         Vector3D color = polygon.second;
+
+        // calculate the equation of the plane of the polygon
+        if (vertices.size() < 3) {
+            throw std::invalid_argument("Polygon must have at least 3 vertices");
+        }
+
+        double A, B, C, D;
+        calculateEquationOfPlane(vertices[0], vertices[1], vertices[2], A, B, C, D);
 
         // find the top and bottom scanline
         double minY = vertices[0].getY();
@@ -459,17 +457,19 @@ void Scene::transformToZBuffer() {
         double bottomScanline = minY > zBufferBottomLimit ? minY : zBufferBottomLimit; 
 
         // for row_no from top_scanline to bottom_scanline
-        int rowNo = (int)((bottomScanline - zBufferBottomLimit) / dy);
-        int topRowNo = (int)((topScanline - zBufferBottomLimit) / dy);
+        // top row is indexed 0
 
-        // std::cout << "rowNo: " << rowNo << std::endl;
-        // std::cout << "topRowNo: " << topRowNo << std::endl;
-        for(;rowNo <= topRowNo; rowNo++) {
-            // std::cout << "rowNo: " << rowNo << std::endl;
+        int rowNo = int((zBufferTopLimit - topScanline) / dy);
+        int bottomRowNo = int((zBufferTopLimit - bottomScanline) / dy);
+
+        // if (rowNo > 0 && ((zBufferTopLimit - topScanline) / dy) - rowNo > dy / 2) {
+        //     rowNo--;
+        // }
+
+        for(;rowNo < bottomRowNo; rowNo++) {
             // Find left_intersecting_column and right_intersecting_column
             // use geometry to find the intersecting points
-            
-            double y = rowNo * dy + zBufferBottomLimit;
+            double y = topY - rowNo * dy;
 
             double x1 = vertices[0].getX();
             double y1 = vertices[0].getY();
@@ -516,24 +516,32 @@ void Scene::transformToZBuffer() {
             int colNo = (int)((leftIntersectingColumn - zBufferLeftLimit) / dx);
             int rightColNo = (int)((rightIntersectingColumn - zBufferLeftLimit) / dx);
 
-            // std::cout << "colNo: " << colNo << std::endl;
-            // std::cout << "rightColNo: " << rightColNo << std::endl;
+            if (colNo < (int)screenWidth - 1 &&
+                (leftIntersectingColumn - zBufferLeftLimit) / dx - colNo >= dx / 2) {
+                colNo++;
+            }
+
+            if (rightColNo < (int)screenWidth - 1 &&
+                (rightIntersectingColumn - zBufferLeftLimit) / dx - rightColNo >= dx / 2) {
+                rightColNo++;
+            }
 
             for(;colNo <= rightColNo; colNo++) {
-                // std::cout << "colNo: " << colNo << std::endl;
                 // Calculate z values using geometry
-                double x = colNo * dx + zBufferLeftLimit;
-                double z = 0;
+                double x = leftX + colNo * dx;
+                double z = -(A * x + B * y + D) / C;
                 
 
                 // Compare with z-buffer and z_front_limit and update if required
-                // std::cout << "zBuffer: " << zBuffer[rowNo][colNo] << std::endl;
-                // if (z > zBuffer[rowNo][colNo] && z < zFrontLimit) {
-                    
+                if (z > zFrontLimit) {
+                    continue;
+                }
+                if (zBuffer[rowNo][colNo] == zMax || zBuffer[rowNo][colNo] < z) {
                     zBuffer[rowNo][colNo] = z;
-                    // Update pixel information if required
-                    image.set_pixel(colNo, (int)screenHeight - rowNo, color.getX(), color.getY(), color.getZ());
-                // }
+                    // Update pixel information
+                    image.set_pixel(colNo, rowNo, color.getX(),
+                        color.getY(), color.getZ());
+                }
             }
         }
 
@@ -541,6 +549,21 @@ void Scene::transformToZBuffer() {
     std::cout << "done" << std::endl;
     image.save_image("out.bmp");
 }
+
+void Scene::writeZBufferToFile() {
+    std::ofstream zBufferFile;
+    zBufferFile.open("zBuffer.txt");
+    for (int i = 0; i < (int)screenHeight; i++) {
+        for (int j = 0; j < (int)screenWidth; j++) {
+            if (zBuffer[i][j] < zMax) {
+                zBufferFile << zBuffer[i][j] << "\t";
+            }
+        }
+        zBufferFile << std::endl;
+    }
+    zBufferFile.close();
+}
+
 /**
  * Reads the scene from input file and executes the commands.
  */
@@ -549,4 +572,5 @@ void Scene::draw() {
     transformView();
     transformProjection();
     transformToZBuffer();
+    writeZBufferToFile();
 }

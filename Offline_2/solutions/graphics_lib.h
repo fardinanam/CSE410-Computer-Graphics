@@ -52,6 +52,7 @@ private:
     void initializeZBuffer();
     void initializeBitmapImg();
     void transformToZBuffer();
+    void writeZBufferToFile();
 public:
     Scene(std::string inputFilename, std::string configFilename);
     ~Scene();
