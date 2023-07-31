@@ -395,12 +395,14 @@ void Scene::transformProjection() {
 }
 
 void Scene::initializeZBuffer() {
-    zMax = zFrontLimit - zBackLimit;
+    zMax = zBackLimit - zFrontLimit;
     dx = (zBufferRightLimit - zBufferLeftLimit) / screenWidth;
     dy = (zBufferTopLimit - zBufferBottomLimit) / screenHeight;
 
     topY = zBufferTopLimit - dy / 2;
+    bottomY = zBufferBottomLimit + dy / 2;
     leftX = zBufferLeftLimit + dx / 2;
+    rightX = zBufferRightLimit - dx / 2;
 
     zBuffer = new double*[(int)screenHeight];
     for (int i = 0; i < (int)screenHeight; i++) {
@@ -442,7 +444,7 @@ void Scene::transformToZBuffer() {
         // find the top and bottom scanline
         double minY = vertices[0].getY();
         double maxY = vertices[0].getY();
-
+        
         for (Vector3D v : vertices) {
             double vy = v.getY();
             if (vy > maxY) {
@@ -453,43 +455,39 @@ void Scene::transformToZBuffer() {
             }
         }
 
-        double topScanline = maxY < zBufferTopLimit ? maxY : zBufferTopLimit;
-        double bottomScanline = minY > zBufferBottomLimit ? minY : zBufferBottomLimit; 
+        // clip y values to the z-buffer limits
+        double topScanline = maxY < topY ? maxY : topY;
+        double bottomScanline = minY > bottomY ? minY : bottomY; 
 
         // for row_no from top_scanline to bottom_scanline
         // top row is indexed 0
 
-        int rowNo = int((zBufferTopLimit - topScanline) / dy);
-        int bottomRowNo = int((zBufferTopLimit - bottomScanline) / dy);
+        int rowNo = int((topY - topScanline) / dy);
+        int bottomRowNo = int((topY - bottomScanline) / dy);
 
-        // if (rowNo > 0 && ((zBufferTopLimit - topScanline) / dy) - rowNo > dy / 2) {
-        //     rowNo--;
-        // }
-
-        for(;rowNo < bottomRowNo; rowNo++) {
+        for(;rowNo <= bottomRowNo; rowNo++) {
             // Find left_intersecting_column and right_intersecting_column
             // use geometry to find the intersecting points
             double y = topY - rowNo * dy;
 
-            double x1 = vertices[0].getX();
-            double y1 = vertices[0].getY();
-            double minX = x1;
-            double maxX = x1;
+            double minX = rightX;
+            double maxX = leftX;
 
-            for (int i = 1; i <= vertices.size(); i++) {
-                int index = i % vertices.size();
-                double x2 = vertices[index].getX();
-                double y2 = vertices[index].getY();
+            for (int i = 0; i < vertices.size(); i++) {
+                int j = (i + 1) % vertices.size();
+                double x1 = vertices[i].getX();
+                double y1 = vertices[i].getY();
+                double x2 = vertices[j].getX();
+                double y2 = vertices[j].getY();
                 
                 // if the line is entirely above or below the scanline, ignore
                 if ((y1 > y && y2 > y) || (y1 < y && y2 < y)) {
-                    x1 = x2;
-                    y1 = y2;
                     continue;
                 }
 
                 if (y1 != y2) {
-                    double x = x1 + (x1 - x2) * (y - y1) / (y1 - y2);
+                    double x = x1 + (x1 - x2) * ((y - y1) / (y1 - y2));
+
                     if (x > maxX) {
                         maxX = x;
                     }
@@ -504,27 +502,15 @@ void Scene::transformToZBuffer() {
                         minX = x2;
                     }
                 }
-
-                x1 = x2;
-                y1 = y2;
-            } 
-
-            double leftIntersectingColumn = minX > zBufferLeftLimit ? minX : zBufferLeftLimit;
-            double rightIntersectingColumn = maxX < zBufferRightLimit ? maxX : zBufferRightLimit;
+            }
+            
+            // clip x values to z-buffer limits
+            double leftIntersectingColumn = minX > leftX ? minX : leftX;
+            double rightIntersectingColumn = maxX < rightX ? maxX : rightX;
 
             // for col_no from left_intersecting_column to right_intersecting_column
-            int colNo = (int)((leftIntersectingColumn - zBufferLeftLimit) / dx);
-            int rightColNo = (int)((rightIntersectingColumn - zBufferLeftLimit) / dx);
-
-            if (colNo < (int)screenWidth - 1 &&
-                (leftIntersectingColumn - zBufferLeftLimit) / dx - colNo >= dx / 2) {
-                colNo++;
-            }
-
-            if (rightColNo < (int)screenWidth - 1 &&
-                (rightIntersectingColumn - zBufferLeftLimit) / dx - rightColNo >= dx / 2) {
-                rightColNo++;
-            }
+            int colNo = (int)((leftIntersectingColumn - leftX) / dx) + 1;
+            int rightColNo = (int)((rightIntersectingColumn - leftX) / dx);
 
             for(;colNo <= rightColNo; colNo++) {
                 // Calculate z values using geometry
@@ -533,10 +519,10 @@ void Scene::transformToZBuffer() {
                 
 
                 // Compare with z-buffer and z_front_limit and update if required
-                if (z > zFrontLimit) {
+                if (z > zBackLimit || z < zFrontLimit) {
                     continue;
                 }
-                if (zBuffer[rowNo][colNo] == zMax || zBuffer[rowNo][colNo] < z) {
+                if (z < zBuffer[rowNo][colNo]) {
                     zBuffer[rowNo][colNo] = z;
                     // Update pixel information
                     image.set_pixel(colNo, rowNo, color.getX(),
@@ -547,7 +533,7 @@ void Scene::transformToZBuffer() {
 
     }
     std::cout << "done" << std::endl;
-    image.save_image("out.bmp");
+    image.save_image(imageFileName);
 }
 
 void Scene::writeZBufferToFile() {

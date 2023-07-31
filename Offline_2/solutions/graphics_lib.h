@@ -28,14 +28,14 @@ private:
     double fovY, aspectRatio, near, far;
     double screenWidth, screenHeight;
 
-    double dx, dy, topY, leftX, zMax;
+    double dx, dy, topY, bottomY, leftX, rightX, zMax;
 
     const double zBufferLeftLimit = -1.0;
     const double zBufferRightLimit = 1.0;
     const double zBufferBottomLimit = -1.0;
     const double zBufferTopLimit = 1.0;
-    const double zFrontLimit = 1.0;
-    const double zBackLimit = -1.0;
+    const double zFrontLimit = -1.0;
+    const double zBackLimit = 1.0;
 
     std::string inputFilename;
     std::string configFilename;
@@ -43,7 +43,7 @@ private:
     const std::string stage2Filename = "stage2.txt";
     const std::string stage3Filename = "stage3.txt";
     const std::string zBufferFilename = "z-buffer.txt";
-    const std::string outputFilename = "out.bmp";
+    const std::string imageFileName = "out.bmp";
 
     void modelTransformation();
     void transformView();
