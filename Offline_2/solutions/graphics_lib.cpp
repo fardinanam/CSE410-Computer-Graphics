@@ -519,7 +519,7 @@ void Scene::transformToZBuffer() {
                 
 
                 // Compare with z-buffer and z_front_limit and update if required
-                if (z > zBackLimit || z < zFrontLimit) {
+                if (z < zFrontLimit) {
                     continue;
                 }
                 if (z < zBuffer[rowNo][colNo]) {
@@ -532,7 +532,7 @@ void Scene::transformToZBuffer() {
         }
 
     }
-    std::cout << "done" << std::endl;
+
     image.save_image(imageFileName);
 }
 
