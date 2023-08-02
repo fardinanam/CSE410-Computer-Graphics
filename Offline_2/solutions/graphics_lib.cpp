@@ -395,7 +395,7 @@ void Scene::transformProjection() {
 }
 
 void Scene::initializeZBuffer() {
-    zMax = zBackLimit - zFrontLimit;
+    zMax = zBackLimit;
     dx = (zBufferRightLimit - zBufferLeftLimit) / screenWidth;
     dy = (zBufferTopLimit - zBufferBottomLimit) / screenHeight;
 

@@ -18,6 +18,7 @@ int main(int argc, char const *argv[]) {
 
     Scene scene(sceneFileName, configFileName);
     scene.draw();
+    cout << "Done!" << endl;
     
     return 0;
 }
