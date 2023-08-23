@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include "vector3D.h"
 #include "bitmap_image.hpp"
+#include "random.h"
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -256,7 +257,11 @@ void Scene::modelTransformation() {
                 vertices.push_back(v);
             }
 
-            Vector3D color(rand() % 256, rand() % 256, rand() % 256);
+            int red = my_rand() % 256;
+            int green = my_rand() % 256;
+            int blue = my_rand() % 256;
+
+            Vector3D color(red, green, blue);
             polygons.push_back(make_pair(vertices, color));
 
             stage1File << std::endl;
