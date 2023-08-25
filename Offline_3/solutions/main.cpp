@@ -1,7 +1,9 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <cmath>
-#include "utils.hpp"
+#include <fstream>
+#include <sstream>
+#include "parser.hpp"
 
 #define INIT_WINDOW_WIDTH 700
 #define INIT_WINDOW_HEIGHT 700
@@ -9,6 +11,9 @@
 #define INIT_WINDOW_Y 100
 
 using namespace std;
+
+// config
+DescriptionParser parser("description.txt");
 
 // Global variables
 struct point eye;
@@ -19,11 +24,6 @@ struct point rightDir;
 const GLfloat rotationAmount = 10;
 const GLfloat cameraMoveAmount = 1;
 GLfloat rotationAngle = 0.0f;
-
-GLfloat fovY = 80.0f;
-GLfloat aspectRatio = 1.0f;
-GLfloat zNear = 1.0f;
-GLfloat zFar = 1000.0f;
 
 void initGL() {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -285,54 +285,6 @@ void drawAxes(GLfloat length = 1.0) {
   glPopMatrix();
 }
 
-void drawSphere(point center, GLfloat radius, point color = {1, 1, 1}) {
-  glPushMatrix();
-  glTranslatef(center.x, center.y, center.z);
-  glColor3f(color.x, color.y, color.z);
-  glutSolidSphere(radius, 100, 100);
-  glPopMatrix();
-}
-
-void drawPyramid(point lowest, GLfloat width, GLfloat height, point color = {1, 1, 1}) {
-  point center = {width/2, height, sqrt(3) * width / 4};
-  
-  glPushMatrix();
-  glTranslatef(lowest.x, lowest.y, lowest.z);
-  glColor3f(color.x, color.y, color.z);
-  glBegin(GL_TRIANGLES);
-  glVertex3f(0, 0, 0);
-  glVertex3f(width, 0, 0);
-  glVertex3f(center.x, center.y, center.z);
-
-  glColor3f(0, 1, 0);
-
-  glVertex3f(0, 0, 0);
-  glVertex3f(width/2, 0, center.z * 2);
-  glVertex3f(center.x, center.y, center.z);
-
-  glColor3f(0, 0, 1);
-
-  glVertex3f(width, 0, 0);
-  glVertex3f(width/2, 0, center.z * 2);
-  glVertex3f(center.x, center.y, center.z);
-
-  glColor3f(1, 1, 0);
-
-  glVertex3f(0, 0, 0);
-  glVertex3f(width, 0, 0);
-  glVertex3f(width/2, 0, center.z * 2);
-  glEnd();
-  glPopMatrix();
-}
-
-void drawCube(point bottomLowerLeft, GLfloat length, point color = {1, 1, 1}) {
-  glPushMatrix();
-  glTranslatef(bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z);
-  glColor3f(color.x, color.y, color.z);
-  glutSolidCube(length);
-  glPopMatrix();
-}
-
 void drawInfiniteCheckerBoard(GLfloat widthOfEachCell) {
   int numberOfCells = 1000;
 
@@ -365,8 +317,8 @@ void display() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  // TODO: change the hard coded values
-  gluPerspective(fovY, aspectRatio, zNear, zFar);
+  description d = parser.getViewDescription();
+  gluPerspective(d.fovY, d.aspectRatio, d.near, d.far);
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -380,19 +332,24 @@ void display() {
   glRotated(rotationAngle, 0, 1, 0);
 
   drawAxes(20.0);
-  drawInfiniteCheckerBoard(50.0);
-  drawSphere({20, 20, 20}, 20, {1, 1, 0});
-  drawPyramid({-40, 0, 5.0}, 30, 40, {1, 0, 0});
-  drawCube({-100, -100, 10}, 40, {0, 0.5, 1.0});
+  vector<Object*> objects = parser.getObjects();
+  for (int i = 0; i < objects.size(); i++) {
+    objects[i]->draw();
+  }
 
   glutSwapBuffers();
 }
+
+
 
 int main(int argc, char **argv) {
   eye = {0, 30, 70};
   lookAtDir = {0, -30, -70};
   upDir = {0, 7/sqrt(58), 3/sqrt(58)};
   rightDir = {1, 0, 0};
+
+  parser.parse();
+  parser.printDescription();
 
   // Initialize glut
   glutInit(&argc, argv);

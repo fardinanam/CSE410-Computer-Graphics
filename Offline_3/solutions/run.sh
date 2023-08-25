@@ -1,4 +1,3 @@
 #!/bin/bash
 
-g++ main.cpp -o main -lGL -lGLU -lglut
-./main
+g++ -o main main.cpp  -lGL -lGLU -lglut && ./main
