@@ -9,6 +9,14 @@ private:
   double ambient, diffuse, reflection, specular;
   double shininess;
 public:
+  Object() {
+    color = {0, 0, 0};
+    ambient = 0;
+    diffuse = 0;
+    reflection = 0;
+    specular = 0;
+    shininess = 0;
+  }
   Object(point color, double ambient, double diffuse, double reflection, double specular, double shininess) {
     this->color = color;
     this->ambient = ambient;

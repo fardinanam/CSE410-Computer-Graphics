@@ -10,6 +10,12 @@ private:
   point p1, p2, p3;
 
 public:
+  Triangle() {
+    p1 = {0, 0, 0};
+    p2 = {0, 0, 0};
+    p3 = {0, 0, 0};
+  }
+  
   Triangle(point p1, point p2, point p3, point color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->p1 = p1;

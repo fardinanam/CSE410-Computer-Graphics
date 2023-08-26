@@ -1,17 +1,23 @@
-#ifndef SQUARE_HPP
-#define SQUARE_HPP
+#ifndef QUADRILATERAL_HPP
+#define QUADRILATERAL_HPP
 
 #include <cmath>
 #include <GL/glut.h>
 #include "object.hpp"
 
-class Square : public Object {
+class Quadrilateral : public Object {
 private:
   point lowerLeft, lowerRight, upperLeft, upperRight;
 public:
-  Square(point lowerLeft, point lowerRight, point upperLeft, point upperRight
-    , point color, double ambient, double diffuse, double reflection, double specular, double shininess) 
-    : Object(color, ambient, diffuse, reflection, specular, shininess) {
+  Quadrilateral() {
+    lowerLeft = {0, 0, 0};
+    lowerRight = {0, 0, 0};
+    upperLeft = {0, 0, 0};
+    upperRight = {0, 0, 0};
+  }
+  
+  Quadrilateral(point lowerLeft, point lowerRight, point upperLeft, point upperRight, point color, double ambient, double diffuse, double reflection, double specular, double shininess)
+      : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->lowerLeft = lowerLeft;
     this->lowerRight = lowerRight;
     this->upperLeft = upperLeft;

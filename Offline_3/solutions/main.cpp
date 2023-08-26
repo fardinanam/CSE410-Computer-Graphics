@@ -17,6 +17,7 @@ DescriptionParser parser("description.txt");
 
 // Global variables
 struct point eye;
+struct point lookAt;
 struct point lookAtDir;
 struct point upDir;
 struct point rightDir;
@@ -336,6 +337,44 @@ void display() {
   for (int i = 0; i < objects.size(); i++) {
     objects[i]->draw();
   }
+
+  vector<normalLight> normalLights = parser.getNormalLights();
+
+  for (int i = 0; i < normalLights.size(); i++) {
+    cout << "Normal light " << i << ": " << normalLights[i].position.x << " " << normalLights[i].position.y << " " << normalLights[i].position.z << endl;
+    glPushMatrix();
+    glTranslatef(normalLights[i].position.x, normalLights[i].position.y, normalLights[i].position.z);
+    glColor3f(0.5, 0.5, 0.5);
+    glutSolidSphere(1, 20, 20);
+    glPopMatrix();
+  }
+
+  // vector<spotLight> spotLights = parser.getSpotLights();
+
+  // for (int i = 0; i < spotLights.size(); i++) {
+  //   cout << "Spot light " << i << ": " << spotLights[i].position.x << " " << spotLights[i].position.y << " " << spotLights[i].position.z << endl;
+  //   point spotLightLookAtPoint = spotLights[i].lookAt;
+
+  //   glPushMatrix();
+  //   glTranslatef(spotLights[i].position.x, spotLights[i].position.y, spotLights[i].position.z);
+  //   glColor3f(0.5, 0.5, 0.5);
+  //   // draw a cone along the direction of the light
+  //   // direction is towards the lookAt point
+  //   // the cone is 1 unit long
+  //   // the cone is 0.5 unit wide at the base
+
+  //   // first rotate the cone to point towards the lookAt point
+  //   // the cone is initially pointing towards the positive z axis
+  //   // so we need to rotate it by the angle between the positive z axis and the lookAt point
+  //   // the angle is acos(lookAt.z / sqrt(lookAt.x * lookAt.x + lookAt.y * lookAt.y + lookAt.z * lookAt.z))
+  //   double angle = acos(spotLightLookAtPoint.z / sqrt(spotLightLookAtPoint.x * spotLightLookAtPoint.x + spotLightLookAtPoint.y * spotLightLookAtPoint.y + spotLightLookAtPoint.z * spotLightLookAtPoint.z));
+  //   glRotatef(angle * 180 / M_PI, -spotLightLookAtPoint.y, spotLightLookAtPoint.x, 0);
+
+  //   // now draw the cone
+  //   glutSolidCone(0.5, 1, 20, 20);
+
+  //   glPopMatrix();
+  // }
 
   glutSwapBuffers();
 }

@@ -5,11 +5,13 @@
 #include <GL/glut.h>
 #include "object.hpp"
 #include "triangle.hpp"
+#include "quadrilateral.hpp"
 
 class Pyramid : public Object {
 private:
   point bottomLowerLeft;
-  Triangle *triangles[4];
+  Triangle triangles[4];
+  Quadrilateral base;
   double width, height;
 
 public:
@@ -20,14 +22,15 @@ public:
     this->height = height;
 
     point bottomLowerRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z};
-    point bottomUpper = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y, bottomLowerLeft.z - sqrt(3) * width / 2};
-    point centroid = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
-    point top = {centroid.x, centroid.y + height, centroid.z};
+    point bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    point bottomUpperRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    point top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
 
-    triangles[0] = new Triangle(bottomLowerLeft, bottomLowerRight, bottomUpper, color, ambient, diffuse, reflection, specular, shininess);
-    triangles[1] = new Triangle(bottomLowerLeft, bottomUpper, top, color, ambient, diffuse, reflection, specular, shininess);
-    triangles[2] = new Triangle(bottomLowerLeft, top, bottomLowerRight, color, ambient, diffuse, reflection, specular, shininess);
-    triangles[3] = new Triangle(bottomLowerRight, top, bottomUpper, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[0] = Triangle(bottomLowerLeft, bottomLowerRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[1] = Triangle(bottomLowerLeft, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[2] = Triangle(bottomUpperLeft, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[3] = Triangle(bottomLowerRight, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    base = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
   }
 
   point normal(const point p) {
@@ -45,9 +48,9 @@ public:
 
   // TODO: review before use
   double intersect(const point p, const point d) {
-    double t = triangles[0]->intersect(p, d);
+    double t = triangles[0].intersect(p, d);
     for (int i = 1; i < 4; i++) {
-      double t2 = triangles[i]->intersect(p, d);
+      double t2 = triangles[i].intersect(p, d);
       if (t2 != -1 && t2 < t) {
         t = t2;
       }
@@ -58,14 +61,10 @@ public:
 
   void draw() {
     for (int i = 0; i < 4; i++) {
-      triangles[i]->draw();
+      triangles[i].draw();
     }
-  }
 
-  ~Pyramid() {
-    for (int i = 0; i < 4; i++) {
-      delete triangles[i];
-    }
+    base.draw();
   }
 };
 #endif

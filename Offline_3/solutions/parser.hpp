@@ -7,10 +7,11 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "sphere.hpp"
 #include "cube.hpp"
 #include "pyramid.hpp"
-#include "square.hpp"
+#include "quadrilateral.hpp"
 
 struct description {
   double near, far;
@@ -64,7 +65,7 @@ private:
         point upperLeft = { x, y, z - widthOfEachCell };
         point upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
 
-        objects.push_back(new Square(lowerLeft, lowerRight, upperLeft, upperRight
+        objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperLeft, upperRight
           , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
         x += widthOfEachCell;
       }
@@ -93,17 +94,6 @@ public:
     std::cout << "Checkerboard Ambient: " << viewDescription.checkerBoardAmbient << std::endl;
     std::cout << "Checkerboard Diffuse: " << viewDescription.checkerBoardDiffuse << std::endl;
     std::cout << "Checkerboard Reflection: " << viewDescription.checkerBoardReflection << std::endl;
-    // std::cout << "Objects: " << std::endl;
-
-    // for (int i = 0; i < objects.size(); i++) {
-    //   std::cout << "Object " << i << std::endl;
-    //   std::cout << "Color: " << objects[i]->getColor().x << " " << objects[i]->getColor().y << " " << objects[i]->getColor().z << std::endl;
-    //   std::cout << "Ambient: " << objects[i]->getAmbient() << std::endl;
-    //   std::cout << "Diffuse: " << objects[i]->getDiffuse() << std::endl;
-    //   std::cout << "Reflection: " << objects[i]->getReflection() << std::endl;
-    //   std::cout << "Specular: " << objects[i]->getSpecular() << std::endl;
-    //   std::cout << "Shininess: " << objects[i]->getShininess() << std::endl;
-    // }
   }
 
   description parse() {
@@ -112,172 +102,168 @@ public:
     std::string line;
     int lineNum = 0;
 
-    getline(descriptionFile, line);
-    std::stringstream ss(line);
-    ss >> viewDescription.near >> viewDescription.far >> viewDescription.fovY >> viewDescription.aspectRatio;
-
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> viewDescription.levelOfRecursion;
-
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> viewDescription.numPixelsX;
-    viewDescription.numPixelsY = viewDescription.numPixelsX;
-
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> viewDescription.checkerBoardCellWidth;
-
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> viewDescription.checkerBoardAmbient >> viewDescription.checkerBoardDiffuse >> viewDescription.checkerBoardReflection;
-
-    int numObjects;
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> numObjects;
-
-    for (int i = 0; i < numObjects; i++) {
-      std::string objectType;
-      getline(descriptionFile, objectType);
-
-      if (objectType == "pyramid") {
-        point lowest;
-        GLfloat width, height;
-        point color;
-        double ambient, diffuse, reflection, specular, shininess;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> lowest.x >> lowest.y >> lowest.z;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> width >> height;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> color.x >> color.y >> color.z;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> ambient >> diffuse >> specular >> reflection;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> shininess;
-
-        objects.push_back(new Pyramid(lowest, width, height
-          , color, ambient, diffuse, reflection, specular, shininess));
+    while (getline(descriptionFile, line)) {
+      if (line.empty()) {
+        continue;
       }
 
-      else if (objectType == "sphere") {
-        point center;
-        GLfloat radius;
-        point color;
-        double ambient, diffuse, reflection, specular, shininess;
+      lineNum++;
+      std::stringstream ss(line);
 
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> center.x >> center.y >> center.z;
+      if (lineNum == 1) {
+        ss >> viewDescription.near >> viewDescription.far >> viewDescription.fovY >> viewDescription.aspectRatio;
+      } else if (lineNum == 2) {
+        ss >> viewDescription.levelOfRecursion;
+      } else if (lineNum == 3) {
+        ss >> viewDescription.numPixelsX;
+        viewDescription.numPixelsY = viewDescription.numPixelsX;
+      } else if (lineNum == 4) {
+        ss >> viewDescription.checkerBoardCellWidth;
+      } else if (lineNum == 5) {
+        ss >> viewDescription.checkerBoardAmbient >> viewDescription.checkerBoardDiffuse >> viewDescription.checkerBoardReflection;
+      } else if (lineNum == 6) {
+        int numObjects;
+        ss >> numObjects;
 
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> radius;
+        for (int i = 0; i < numObjects; i++) {
+          std::string objectType;
 
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> color.x >> color.y >> color.z;
+          while(getline(descriptionFile, objectType) && objectType.empty());
 
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> ambient >> diffuse >> specular >> reflection;
+          if (objectType == "pyramid") {
+            point lowest;
+            GLfloat width, height;
+            point color;
+            double ambient, diffuse, reflection, specular, shininess;
 
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> shininess;
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> lowest.x >> lowest.y >> lowest.z;
 
-        objects.push_back(new Sphere(center, radius
-          , color, ambient, diffuse, reflection, specular, shininess));
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> width >> height;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> color.x >> color.y >> color.z;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> ambient >> diffuse >> specular >> reflection;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> shininess;
+
+            objects.push_back(new Pyramid(lowest, width, height, color, ambient, diffuse, reflection, specular, shininess));
+          }
+
+          else if (objectType == "sphere") {
+            point center;
+            GLfloat radius;
+            point color;
+            double ambient, diffuse, reflection, specular, shininess;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> center.x >> center.y >> center.z;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> radius;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> color.x >> color.y >> color.z;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> ambient >> diffuse >> specular >> reflection;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> shininess;
+
+            objects.push_back(new Sphere(center, radius, color, ambient, diffuse, reflection, specular, shininess));
+          } else if (objectType == "cube") {
+            point bottomLowerLeft;
+            GLfloat length;
+            point color;
+            double ambient, diffuse, reflection, specular, shininess;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> bottomLowerLeft.x >> bottomLowerLeft.y >> bottomLowerLeft.z;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> length;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> color.x >> color.y >> color.z;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> ambient >> diffuse >> specular >> reflection;
+
+            getline(descriptionFile, line);
+            ss = std::stringstream(line);
+            ss >> shininess;
+
+            objects.push_back(new Cube(bottomLowerLeft, length, color, ambient, diffuse, reflection, specular, shininess));
+          }
+        }
+      } else if (lineNum == 7) {
+        int numNormalLights;
+        ss >> numNormalLights;
+
+        for (int i = 0; i < numNormalLights; i++) {
+          point position;
+          double fallOff;
+          
+          while (getline(descriptionFile, line) && line.empty());
+
+          ss = std::stringstream(line);
+          ss >> position.x >> position.y >> position.z >> fallOff;
+
+          normalLight light;
+          light.position = position;
+          light.fallOff = fallOff;
+          normalLights.push_back(light);
+        }
+      } else if (lineNum == 8) {
+        int numSpotLights;
+        ss >> numSpotLights;
+
+        for (int i = 0; i < numSpotLights; i++) {
+          point position, lookAt;
+          double fallOff, cutOffAngle;
+
+          while (getline(descriptionFile, line) && line.empty());
+
+          ss = std::stringstream(line);
+          ss >> position.x >> position.y >> position.z >> fallOff;
+
+          getline(descriptionFile, line);
+          ss = std::stringstream(line);
+          ss >> lookAt.x >> lookAt.y >> lookAt.z;
+
+          getline(descriptionFile, line);
+          ss = std::stringstream(line);
+          ss >> cutOffAngle;
+
+          spotLight light;
+          light.position = position;
+          light.lookAt = lookAt;
+          light.fallOff = fallOff;
+          light.cutOffAngle = cutOffAngle;
+          spotLights.push_back(light);
+        }
+      } else {
+        break;
       }
-      else if (objectType == "cube") {
-        point bottomLowerLeft;
-        GLfloat length;
-        point color;
-        double ambient, diffuse, reflection, specular, shininess;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> bottomLowerLeft.x >> bottomLowerLeft.y >> bottomLowerLeft.z;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> length;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> color.x >> color.y >> color.z;
-
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> ambient >> diffuse >> specular >> reflection;
-        
-        getline(descriptionFile, line);
-        ss = std::stringstream(line);
-        ss >> shininess;
-
-        objects.push_back(new Cube(bottomLowerLeft, length
-          , color, ambient, diffuse, reflection, specular, shininess));
-      }
-    }
-
-    int numNormalLights;
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> numNormalLights;
-
-    for (int i = 0; i < numNormalLights; i++) {
-      point position;
-      double fallOff;
-
-      getline(descriptionFile, line);
-      ss = std::stringstream(line);
-      ss >> position.x >> position.y >> position.z >> fallOff;
-
-      normalLight light;
-      light.position = position;
-      light.fallOff = fallOff;
-      normalLights.push_back(light);
-    }
-
-    int numSpotLights;
-    getline(descriptionFile, line);
-    ss = std::stringstream(line);
-    ss >> numSpotLights;
-
-    for (int i = 0; i < numSpotLights; i++) {
-      point position, lookAt;
-      double fallOff, cutOffAngle;
-
-      getline(descriptionFile, line);
-      ss = std::stringstream(line);
-      ss >> position.x >> position.y >> position.z >> fallOff;
-
-      getline(descriptionFile, line);
-      ss = std::stringstream(line);
-      ss >> lookAt.x >> lookAt.y >> lookAt.z;
-
-      getline(descriptionFile, line);
-      ss = std::stringstream(line);
-      ss >> cutOffAngle;
-
-      spotLight light;
-      light.position = position;
-      light.lookAt = lookAt;
-      light.fallOff = fallOff;
-      light.cutOffAngle = cutOffAngle;
-      spotLights.push_back(light);
     }
 
     descriptionFile.close();
@@ -292,6 +278,14 @@ public:
 
   std::vector<Object*> getObjects() {
     return objects;
+  }
+
+  std::vector<normalLight> getNormalLights() {
+    return normalLights;
+  }
+
+  std::vector<spotLight> getSpotLights() {
+    return spotLights;
   }
 
   ~DescriptionParser() {
