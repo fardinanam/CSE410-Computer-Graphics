@@ -4,39 +4,52 @@
 #include <cmath>
 #include <GL/glut.h>
 #include "object.hpp"
+#include "quadrilateral.hpp"
 
 class Cube : public Object {
 private:
   Vector bottomLowerLeft;
-  double side;
-
+  double side;  
+  Quadrilateral faces[6];
 public:
   Cube(Vector bottomLowerLeft, double side, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->side = side;
+
+    Vector bottomLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z};
+    Vector bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - side};
+    Vector bottomUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z - side};
+    Vector topLowerLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z};
+    Vector topLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z};
+    Vector topUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
+    Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
+
+    faces[0] = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[1] = Quadrilateral(bottomLowerLeft, bottomLowerRight, topLowerRight, topLowerLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[2] = Quadrilateral(bottomLowerLeft, bottomUpperLeft, topUpperLeft, topLowerLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[3] = Quadrilateral(bottomLowerRight, bottomUpperRight, topUpperRight, topLowerRight, color, ambient, diffuse, reflection, specular, shininess);
+    faces[4] = Quadrilateral(bottomUpperLeft, bottomUpperRight, topUpperRight, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[5] = Quadrilateral(topLowerLeft, topLowerRight, topUpperRight, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
   }
 
-  // TODO: Implement this function properly
-  double intersect(Vector p, Vector d) {
-    double t1 = (bottomLowerLeft.x - p.x) / d.x;
-    double t2 = (bottomLowerLeft.x + side - p.x) / d.x;
-    double t3 = (bottomLowerLeft.y - p.y) / d.y;
-    double t4 = (bottomLowerLeft.y + side - p.y) / d.y;
-    double t5 = (bottomLowerLeft.z - p.z) / d.z;
-    double t6 = (bottomLowerLeft.z + side - p.z) / d.z;
-    double tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
-    double tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));
-    if (tmax < 0) {
-      return -1;
+  double intersect_t(Vector p, Vector d) {
+    // call intersect_t on all the faces
+    // return the minimum of the six
+    double min_t = -1;
+
+    for (int i = 0; i < 6; i++) {
+      double t = faces[i].intersect_t(p, d);
+      if (t != -1) {
+        if (min_t == -1) {
+          min_t = t;
+        } else {
+          min_t = std::min(min_t, t);
+        }
+      }
     }
-    if (tmin > tmax) {
-      return -1;
-    }
-    if (tmin < 0) {
-      return tmax;
-    }
-    return tmin;
+
+    return min_t;
   }
 
   // implement this function properly
@@ -64,11 +77,9 @@ public:
   }
 
   void draw() {
-    glColor3f(getColor().x, getColor().y, getColor().z);
-    glPushMatrix();
-    glTranslatef(bottomLowerLeft.x + side / 2, bottomLowerLeft.y + side / 2, bottomLowerLeft.z + side / 2);
-    glutSolidCube(side);
-    glPopMatrix();
+    for (int i = 0; i < 6; i++) {
+      faces[i].draw();
+    }
   }
 };
 #endif

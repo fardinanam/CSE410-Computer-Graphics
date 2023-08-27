@@ -65,7 +65,7 @@ private:
         Vector upperLeft = { x, y, z - widthOfEachCell };
         Vector upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
 
-        objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperLeft, upperRight
+        objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperRight, upperLeft
           , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
         x += widthOfEachCell;
       }

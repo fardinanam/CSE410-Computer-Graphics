@@ -11,12 +11,12 @@ public:
   Vector();
   Vector(double x, double y, double z);
   Vector operator+(const Vector& other);
-  Vector operator-(const Vector& other);
   Vector operator*(const Vector& other);
-  Vector operator/(const Vector& other);
   Vector operator*(const double& other);
+  Vector operator/(const Vector& other);
   Vector operator/(const double& other);
 
+  friend Vector operator-(const Vector &v1, const Vector &v2);
   friend Vector operator*(double s, const Vector &v);
   friend Vector operator/(double &s, const Vector &v);
   friend std::ostream &operator<<(std::ostream &out, const Vector &v);
@@ -49,11 +49,11 @@ Vector Vector::operator+(const Vector& other) {
   return result;
 }
 
-Vector Vector::operator-(const Vector& other) {
+Vector operator-(const Vector& v1, const Vector& v2) {
   Vector result;
-  result.x = this->x - other.x;
-  result.y = this->y - other.y;
-  result.z = this->z - other.z;
+  result.x = v1.x - v2.x;
+  result.y = v1.y - v2.y;
+  result.z = v1.z - v2.z;
   return result;
 }
 
@@ -147,41 +147,5 @@ Vector Vector::normalize() const {
   result.z = this->z / length;
   return result;
 }
-
-// struct point {
-//   double x, y, z;
-// };
-
-// point add(const point x, const point y) {
-//   point result;
-//   result.x = x.x + y.x;
-//   result.y = x.y + y.y;
-//   result.z = x.z + y.z;
-//   return result;
-// }
-
-// point subtract(const point x, const point y) {
-//   point result;
-//   result.x = x.x - y.x;
-//   result.y = x.y - y.y;
-//   result.z = x.z - y.z;
-//   return result;
-// }
-
-// point cross(const point x, const point y) {
-//   point result;
-//   result.x = x.y * y.z - x.z * y.y;
-//   result.y = x.z * y.x - x.x * y.z;
-//   result.z = x.x * y.y - x.y * y.x;
-//   return result;
-// }
-
-// point dot(const point x, const point y) {
-//   point result;
-//   result.x = x.x * y.x;
-//   result.y = x.y * y.y;
-//   result.z = x.z * y.z;
-//   return result;
-// }
 
 #endif

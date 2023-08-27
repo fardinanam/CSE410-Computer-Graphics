@@ -33,31 +33,39 @@ public:
     base = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
   }
 
-  // TODO: review before use
-  Vector normal(const Vector p) {
-    Vector v0 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
-    Vector v1 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
-    Vector v2 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
-    Vector v3 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
-    Vector n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
-    double norm = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
-    n.x /= norm;
-    n.y /= norm;
-    n.z /= norm;
-    return n;
-  }
+  // // TODO: review before use
+  // Vector normal(const Vector p) {
+    
 
-  // TODO: review before use
-  double intersect(const Vector p, const Vector d) {
-    double t = triangles[0].intersect(p, d);
-    for (int i = 1; i < 4; i++) {
-      double t2 = triangles[i].intersect(p, d);
-      if (t2 != -1 && t2 < t) {
-        t = t2;
+
+  // }
+
+  double intersect_t(const Vector p, const Vector d) {
+    // call intersect_t on all triangles and base
+    // return the minimum of the five
+
+    double min_t = -1;
+    for (int i = 0; i < 4; i++) {
+      double t = triangles[i].intersect_t(p, d);
+      if (t != -1) {
+        if (min_t == -1) {
+          min_t = t;
+        } else {
+          min_t = std::min(min_t, t);
+        }
       }
     }
 
-    return t;
+    double t = base.intersect_t(p, d);
+    if (t != -1) {
+      if (min_t == -1) {
+        min_t = t;
+      } else {
+        min_t = std::min(min_t, t);
+      }
+    }
+
+    return min_t;
   }
 
   void draw() {

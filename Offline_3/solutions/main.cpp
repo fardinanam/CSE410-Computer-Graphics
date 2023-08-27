@@ -43,6 +43,10 @@ void reshapeListener(GLsizei width, GLsizei height) {
   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
+void captureFrame() {
+  
+}
+
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
     case 'a':
@@ -63,7 +67,9 @@ void keyboardListener(unsigned char key, int x, int y) {
     case '2':
       camera.moveDown(cameraMoveAmount);
       break;
-
+    case '0':
+      captureFrame();
+      break;
     default:
       return;
   }
@@ -73,10 +79,10 @@ void keyboardListener(unsigned char key, int x, int y) {
 void specialKeyListener(int key, int x, int y)
 {
   switch (key) {
-    case GLUT_KEY_UP: // down arrow key
+    case GLUT_KEY_UP:
       camera.lookUp(cameraRotationAmount);
       break;
-    case GLUT_KEY_DOWN: // up arrow key
+    case GLUT_KEY_DOWN:
       camera.lookDown(cameraRotationAmount);
       break;
 
@@ -186,40 +192,13 @@ void display() {
     glPopMatrix();
   }
 
-  // vector<spotLight> spotLights = parser.getSpotLights();
-
-  // for (int i = 0; i < spotLights.size(); i++) {
-  //   cout << "Spot light " << i << ": " << spotLights[i].position.x << " " << spotLights[i].position.y << " " << spotLights[i].position.z << endl;
-  //   point spotLightLookAtPoint = spotLights[i].lookAt;
-
-  //   glPushMatrix();
-  //   glTranslatef(spotLights[i].position.x, spotLights[i].position.y, spotLights[i].position.z);
-  //   glColor3f(0.5, 0.5, 0.5);
-  //   // draw a cone along the direction of the light
-  //   // direction is towards the lookAt point
-  //   // the cone is 1 unit long
-  //   // the cone is 0.5 unit wide at the base
-
-  //   // first rotate the cone to point towards the lookAt point
-  //   // the cone is initially pointing towards the positive z axis
-  //   // so we need to rotate it by the angle between the positive z axis and the lookAt point
-  //   // the angle is acos(lookAt.z / sqrt(lookAt.x * lookAt.x + lookAt.y * lookAt.y + lookAt.z * lookAt.z))
-  //   double angle = acos(spotLightLookAtPoint.z / sqrt(spotLightLookAtPoint.x * spotLightLookAtPoint.x + spotLightLookAtPoint.y * spotLightLookAtPoint.y + spotLightLookAtPoint.z * spotLightLookAtPoint.z));
-  //   glRotatef(angle * 180 / M_PI, -spotLightLookAtPoint.y, spotLightLookAtPoint.x, 0);
-
-  //   // now draw the cone
-  //   glutSolidCone(0.5, 1, 20, 20);
-
-  //   glPopMatrix();
-  // }
-
   glutSwapBuffers();
 }
 
 
 
 int main(int argc, char **argv) {
-  Vector eye = {0, 40, 100};
+  Vector eye = {0, 10, 100};
   Vector lookAtPos(0, 0, 0);
   Vector upDir(0, 1, 0);
 

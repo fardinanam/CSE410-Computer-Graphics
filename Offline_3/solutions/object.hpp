@@ -28,10 +28,10 @@ public:
   /**
    * @param p: origin of the ray
    * @param d: direction of the ray (normalized)
-   * @return: the distance from p to the intersection Vector
+   * @return: the distance from p to the intersection point
   */
-  virtual double intersect(const Vector p, const Vector d) = 0;
-  virtual Vector normal(const Vector p) = 0;
+  virtual double intersect_t(const Vector p, const Vector d) = 0;
+  // virtual Vector normal(const Vector p) = 0;
   virtual void draw() = 0;
 
   virtual Vector getColor() {

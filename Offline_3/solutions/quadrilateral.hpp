@@ -4,6 +4,7 @@
 #include <cmath>
 #include <GL/glut.h>
 #include "object.hpp"
+#include "triangle.hpp"
 
 class Quadrilateral : public Object {
 private:
@@ -16,7 +17,7 @@ public:
     upperRight = {0, 0, 0};
   }
   
-  Quadrilateral(Vector lowerLeft, Vector lowerRight, Vector upperLeft, Vector upperRight, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess)
+  Quadrilateral(Vector lowerLeft, Vector lowerRight, Vector upperRight, Vector upperLeft, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess)
       : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->lowerLeft = lowerLeft;
     this->lowerRight = lowerRight;
@@ -24,39 +25,33 @@ public:
     this->upperRight = upperRight;
   }
 
-  // TODO: Implement this function properly
   Vector normal(const Vector p) {
-    Vector v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
-    Vector v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
-    Vector n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
-    double norm = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
-    n.x /= norm;
-    n.y /= norm;
-    n.z /= norm;
-    return n;
+    Vector v1 = lowerRight - lowerLeft;
+    Vector v2 = upperLeft - lowerLeft;
+
+    return v1.cross(v2).normalize();
   }
 
-  // TODO: Implement this function properly
-  double intersect(const Vector p, const Vector d) {
-    // use barycentric coordinate to find intersection
-    Vector n = normal(lowerLeft);
-    double t = (n.x * (lowerLeft.x - p.x) + n.y * (lowerLeft.y - p.y) + n.z * (lowerLeft.z - p.z)) / (n.x * d.x + n.y * d.y + n.z * d.z);
-    Vector intersection = {p.x + t * d.x, p.y + t * d.y, p.z + t * d.z};
-    Vector v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
-    Vector v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
-    Vector v2 = {intersection.x - lowerLeft.x, intersection.y - lowerLeft.y, intersection.z - lowerLeft.z};
-    double dot00 = v0.x * v0.x + v0.y * v0.y + v0.z * v0.z;
-    double dot01 = v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
-    double dot02 = v0.x * v2.x + v0.y * v2.y + v0.z * v2.z;
-    double dot11 = v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
-    double dot12 = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
-      return t;
+  double intersect_t(const Vector p, const Vector d) {
+    // Barycentric coordinates
+    // generate two triangles and call intersect_t on both
+    // return the minimum of the two
+
+    Triangle t1 = Triangle(lowerLeft, lowerRight, upperLeft, getColor(), getAmbient(), getDiffuse(), getReflection(), getSpecular(), getShininess());
+    Triangle t2 = Triangle(lowerRight, upperRight, upperLeft, getColor(), getAmbient(), getDiffuse(), getReflection(), getSpecular(), getShininess());
+  
+    double t1_t = t1.intersect_t(p, d);
+    double t2_t = t2.intersect_t(p, d);
+
+    if (t1_t == -1 && t2_t == -1) {
+      return -1;
+    } else if (t1_t == -1) {
+      return t2_t;
+    } else if (t2_t == -1) {
+      return t1_t;
+    } else {
+      return std::min(t1_t, t2_t);
     }
-    return -1;
   }
 
   void draw() {

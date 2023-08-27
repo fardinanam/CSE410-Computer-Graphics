@@ -29,6 +29,8 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
+
+  friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
 
 Camera::Camera() {
@@ -124,4 +126,11 @@ void Camera::lookDown(double angle) {
   lookUp(-angle);
 }
 
+std::ostream &operator<<(std::ostream &out, const Camera &c) {
+  out << "Camera: " << std::endl;
+  out << "  Position: " << c.position << std::endl;
+  out << "  LookAtPos: " << c.lookAtPos << std::endl;
+  out << "  UpDir: " << c.upDir << std::endl;
+  return out;
+}
 #endif // CAMERA_HPP
