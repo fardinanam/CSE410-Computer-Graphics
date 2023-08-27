@@ -1,11 +1,11 @@
 #ifndef OBJECT_HPP
 #define OBJECT_HPP
 
-#include "point.hpp"
+#include "vector.hpp"
 
 class Object {
 private:
-  point color;
+  Vector color;
   double ambient, diffuse, reflection, specular;
   double shininess;
 public:
@@ -17,7 +17,7 @@ public:
     specular = 0;
     shininess = 0;
   }
-  Object(point color, double ambient, double diffuse, double reflection, double specular, double shininess) {
+  Object(Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) {
     this->color = color;
     this->ambient = ambient;
     this->diffuse = diffuse;
@@ -28,13 +28,13 @@ public:
   /**
    * @param p: origin of the ray
    * @param d: direction of the ray (normalized)
-   * @return: the distance from p to the intersection point
+   * @return: the distance from p to the intersection Vector
   */
-  virtual double intersect(const point p, const point d) = 0;
-  virtual point normal(const point p) = 0;
+  virtual double intersect(const Vector p, const Vector d) = 0;
+  virtual Vector normal(const Vector p) = 0;
   virtual void draw() = 0;
 
-  virtual point getColor() {
+  virtual Vector getColor() {
     return color;
   }
 

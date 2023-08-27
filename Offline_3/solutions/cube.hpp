@@ -7,18 +7,18 @@
 
 class Cube : public Object {
 private:
-  point bottomLowerLeft;
+  Vector bottomLowerLeft;
   double side;
 
 public:
-  Cube(point bottomLowerLeft, double side, point color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Cube(Vector bottomLowerLeft, double side, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->side = side;
   }
 
   // TODO: Implement this function properly
-  double intersect(point p, point d) {
+  double intersect(Vector p, Vector d) {
     double t1 = (bottomLowerLeft.x - p.x) / d.x;
     double t2 = (bottomLowerLeft.x + side - p.x) / d.x;
     double t3 = (bottomLowerLeft.y - p.y) / d.y;
@@ -40,8 +40,8 @@ public:
   }
 
   // implement this function properly
-  point normal(point p) {
-    point n = {0, 0, 0};
+  Vector normal(Vector p) {
+    Vector n = {0, 0, 0};
     if (p.x == bottomLowerLeft.x) {
       n.x = -1;
     }

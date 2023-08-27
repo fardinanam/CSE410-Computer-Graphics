@@ -24,13 +24,13 @@ struct description {
 };
 
 struct normalLight {
-  point position;
+  Vector position;
   double fallOff;
 };
 
 struct spotLight {
-  point position;
-  point lookAt;
+  Vector position;
+  Vector lookAt;
   double fallOff;
   double cutOffAngle;
 };
@@ -53,17 +53,17 @@ private:
 
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
-        point color;
+        Vector color;
         if ((i + j) % 2 == 0) {
           color = { 1, 1, 1 };
         } else {
           color = { 0, 0, 0 };
         }
 
-        point lowerLeft = { x, y, z };
-        point lowerRight = { x + widthOfEachCell, y, z };
-        point upperLeft = { x, y, z - widthOfEachCell };
-        point upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
+        Vector lowerLeft = { x, y, z };
+        Vector lowerRight = { x + widthOfEachCell, y, z };
+        Vector upperLeft = { x, y, z - widthOfEachCell };
+        Vector upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
 
         objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperLeft, upperRight
           , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
@@ -131,9 +131,9 @@ public:
           while(getline(descriptionFile, objectType) && objectType.empty());
 
           if (objectType == "pyramid") {
-            point lowest;
+            Vector lowest;
             GLfloat width, height;
-            point color;
+            Vector color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -160,9 +160,9 @@ public:
           }
 
           else if (objectType == "sphere") {
-            point center;
+            Vector center;
             GLfloat radius;
-            point color;
+            Vector color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -187,9 +187,9 @@ public:
 
             objects.push_back(new Sphere(center, radius, color, ambient, diffuse, reflection, specular, shininess));
           } else if (objectType == "cube") {
-            point bottomLowerLeft;
+            Vector bottomLowerLeft;
             GLfloat length;
-            point color;
+            Vector color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -220,7 +220,7 @@ public:
         ss >> numNormalLights;
 
         for (int i = 0; i < numNormalLights; i++) {
-          point position;
+          Vector position;
           double fallOff;
           
           while (getline(descriptionFile, line) && line.empty());
@@ -238,7 +238,7 @@ public:
         ss >> numSpotLights;
 
         for (int i = 0; i < numSpotLights; i++) {
-          point position, lookAt;
+          Vector position, lookAt;
           double fallOff, cutOffAngle;
 
           while (getline(descriptionFile, line) && line.empty());

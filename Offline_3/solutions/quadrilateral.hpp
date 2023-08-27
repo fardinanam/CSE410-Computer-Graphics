@@ -7,7 +7,7 @@
 
 class Quadrilateral : public Object {
 private:
-  point lowerLeft, lowerRight, upperLeft, upperRight;
+  Vector lowerLeft, lowerRight, upperLeft, upperRight;
 public:
   Quadrilateral() {
     lowerLeft = {0, 0, 0};
@@ -16,7 +16,7 @@ public:
     upperRight = {0, 0, 0};
   }
   
-  Quadrilateral(point lowerLeft, point lowerRight, point upperLeft, point upperRight, point color, double ambient, double diffuse, double reflection, double specular, double shininess)
+  Quadrilateral(Vector lowerLeft, Vector lowerRight, Vector upperLeft, Vector upperRight, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess)
       : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->lowerLeft = lowerLeft;
     this->lowerRight = lowerRight;
@@ -24,10 +24,11 @@ public:
     this->upperRight = upperRight;
   }
 
-  point normal(const point p) {
-    point v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
-    point v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
-    point n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
+  // TODO: Implement this function properly
+  Vector normal(const Vector p) {
+    Vector v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
+    Vector v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
+    Vector n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
     double norm = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
     n.x /= norm;
     n.y /= norm;
@@ -36,14 +37,14 @@ public:
   }
 
   // TODO: Implement this function properly
-  double intersect(const point p, const point d) {
+  double intersect(const Vector p, const Vector d) {
     // use barycentric coordinate to find intersection
-    point n = normal(lowerLeft);
+    Vector n = normal(lowerLeft);
     double t = (n.x * (lowerLeft.x - p.x) + n.y * (lowerLeft.y - p.y) + n.z * (lowerLeft.z - p.z)) / (n.x * d.x + n.y * d.y + n.z * d.z);
-    point intersection = {p.x + t * d.x, p.y + t * d.y, p.z + t * d.z};
-    point v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
-    point v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
-    point v2 = {intersection.x - lowerLeft.x, intersection.y - lowerLeft.y, intersection.z - lowerLeft.z};
+    Vector intersection = {p.x + t * d.x, p.y + t * d.y, p.z + t * d.z};
+    Vector v0 = {lowerRight.x - lowerLeft.x, lowerRight.y - lowerLeft.y, lowerRight.z - lowerLeft.z};
+    Vector v1 = {upperLeft.x - lowerLeft.x, upperLeft.y - lowerLeft.y, upperLeft.z - lowerLeft.z};
+    Vector v2 = {intersection.x - lowerLeft.x, intersection.y - lowerLeft.y, intersection.z - lowerLeft.z};
     double dot00 = v0.x * v0.x + v0.y * v0.y + v0.z * v0.z;
     double dot01 = v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
     double dot02 = v0.x * v2.x + v0.y * v2.y + v0.z * v2.z;

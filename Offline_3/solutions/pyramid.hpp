@@ -9,22 +9,22 @@
 
 class Pyramid : public Object {
 private:
-  point bottomLowerLeft;
+  Vector bottomLowerLeft;
   Triangle triangles[4];
   Quadrilateral base;
   double width, height;
 
 public:
-  Pyramid(point bottomLowerLeft, double width, double height, point color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Pyramid(Vector bottomLowerLeft, double width, double height, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->width = width;
     this->height = height;
 
-    point bottomLowerRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z};
-    point bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - width};
-    point bottomUpperRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z - width};
-    point top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
+    Vector bottomLowerRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z};
+    Vector bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    Vector bottomUpperRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    Vector top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
 
     triangles[0] = Triangle(bottomLowerLeft, bottomLowerRight, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[1] = Triangle(bottomLowerLeft, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
@@ -33,12 +33,13 @@ public:
     base = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
   }
 
-  point normal(const point p) {
-    point v0 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
-    point v1 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
-    point v2 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
-    point v3 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
-    point n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
+  // TODO: review before use
+  Vector normal(const Vector p) {
+    Vector v0 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
+    Vector v1 = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
+    Vector v2 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
+    Vector v3 = {bottomLowerLeft.x - width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z + width / 2};
+    Vector n = {v0.y * v1.z - v0.z * v1.y, v0.z * v1.x - v0.x * v1.z, v0.x * v1.y - v0.y * v1.x};
     double norm = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
     n.x /= norm;
     n.y /= norm;
@@ -47,7 +48,7 @@ public:
   }
 
   // TODO: review before use
-  double intersect(const point p, const point d) {
+  double intersect(const Vector p, const Vector d) {
     double t = triangles[0].intersect(p, d);
     for (int i = 1; i < 4; i++) {
       double t2 = triangles[i].intersect(p, d);

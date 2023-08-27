@@ -7,18 +7,18 @@
 
 class Sphere : public Object {
 private:
-  point center;
+  Vector center;
   double radius;
 
 public:
-  Sphere(point center, double radius, point color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Sphere(Vector center, double radius, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->center = center;
     this->radius = radius;
   }
 
   // TODO: Implement this function properly
-  double intersect(const point p, const point d) {
+  double intersect(const Vector p, const Vector d) {
     double a = d.x * d.x + d.y * d.y + d.z * d.z;
     double b = 2 * (d.x * (p.x - center.x) + d.y * (p.y - center.y) + d.z * (p.z - center.z));
     double c = (p.x - center.x) * (p.x - center.x) + (p.y - center.y) * (p.y - center.y) + (p.z - center.z) * (p.z - center.z) - radius * radius;
@@ -40,8 +40,8 @@ public:
     return t1 < t2 ? t1 : t2;
   }
 
-  point normal(const point p) {
-    point n = {p.x - center.x, p.y - center.y, p.z - center.z};
+  Vector normal(const Vector p) {
+    Vector n = {p.x - center.x, p.y - center.y, p.z - center.z};
     double norm = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
     n.x /= norm;
     n.y /= norm;

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include "camera.hpp"
 #include "parser.hpp"
 
 #define INIT_WINDOW_WIDTH 700
@@ -16,13 +17,9 @@ using namespace std;
 DescriptionParser parser("description.txt");
 
 // Global variables
-struct point eye;
-struct point lookAt;
-struct point lookAtDir;
-struct point upDir;
-struct point rightDir;
+Camera camera;
 
-const GLfloat rotationAmount = 10;
+const GLfloat cameraRotationAmount = 10;
 const GLfloat cameraMoveAmount = 1;
 GLfloat rotationAngle = 0.0f;
 
@@ -46,184 +43,26 @@ void reshapeListener(GLsizei width, GLsizei height) {
   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
-void rotateClockwiseY() {
-  rotationAngle += rotationAmount;
-}
-
-void rotateAntiClockwiseY() {
-  rotationAngle -= rotationAmount;
-}
-
-void lookLeft() {
-  rightDir.x = rightDir.x * cos(cameraMoveAmount) + lookAtDir.x * sin(cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(cameraMoveAmount) + lookAtDir.y * sin(cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(cameraMoveAmount) + lookAtDir.z * sin(cameraMoveAmount);
-
-  lookAtDir.x = lookAtDir.x * cos(cameraMoveAmount) - rightDir.x * sin(cameraMoveAmount);
-  lookAtDir.y = lookAtDir.y * cos(cameraMoveAmount) - rightDir.y * sin(cameraMoveAmount);
-  lookAtDir.z = lookAtDir.z * cos(cameraMoveAmount) - rightDir.z * sin(cameraMoveAmount);
-}
-
-void lookRight() {
-  rightDir.x = rightDir.x * cos(-cameraMoveAmount) + lookAtDir.x * sin(-cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(-cameraMoveAmount) + lookAtDir.y * sin(-cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(-cameraMoveAmount) + lookAtDir.z * sin(-cameraMoveAmount);
-
-  lookAtDir.x = lookAtDir.x * cos(-cameraMoveAmount) - rightDir.x * sin(-cameraMoveAmount);
-  lookAtDir.y = lookAtDir.y * cos(-cameraMoveAmount) - rightDir.y * sin(-cameraMoveAmount);
-  lookAtDir.z = lookAtDir.z * cos(-cameraMoveAmount) - rightDir.z * sin(-cameraMoveAmount);
-}
-
-void lookUp() {
-  lookAtDir.x = lookAtDir.x * cos(cameraMoveAmount) + upDir.x * sin(cameraMoveAmount);
-  lookAtDir.y = lookAtDir.y * cos(cameraMoveAmount) + upDir.y * sin(cameraMoveAmount);
-  lookAtDir.z = lookAtDir.z * cos(cameraMoveAmount) + upDir.z * sin(cameraMoveAmount);
-
-  upDir.x = upDir.x * cos(cameraMoveAmount) - lookAtDir.x * sin(cameraMoveAmount);
-  upDir.y = upDir.y * cos(cameraMoveAmount) - lookAtDir.y * sin(cameraMoveAmount);
-  upDir.z = upDir.z * cos(cameraMoveAmount) - lookAtDir.z * sin(cameraMoveAmount);
-}
-
-void lookDown() {
-  lookAtDir.x = lookAtDir.x * cos(-cameraMoveAmount) + upDir.x * sin(-cameraMoveAmount);
-  lookAtDir.y = lookAtDir.y * cos(-cameraMoveAmount) + upDir.y * sin(-cameraMoveAmount);
-  lookAtDir.z = lookAtDir.z * cos(-cameraMoveAmount) + upDir.z * sin(-cameraMoveAmount);
-
-  upDir.x = upDir.x * cos(-cameraMoveAmount) - lookAtDir.x * sin(-cameraMoveAmount);
-  upDir.y = upDir.y * cos(-cameraMoveAmount) - lookAtDir.y * sin(-cameraMoveAmount);
-  upDir.z = upDir.z * cos(-cameraMoveAmount) - lookAtDir.z * sin(-cameraMoveAmount);
-}
-
-void tiltCounterClockwise() {
-  upDir.x = upDir.x * cos(cameraMoveAmount) + rightDir.x * sin(cameraMoveAmount);
-  upDir.y = upDir.y * cos(cameraMoveAmount) + rightDir.y * sin(cameraMoveAmount);
-  upDir.z = upDir.z * cos(cameraMoveAmount) + rightDir.z * sin(cameraMoveAmount);
-
-  rightDir.x = rightDir.x * cos(cameraMoveAmount) - upDir.x * sin(cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(cameraMoveAmount) - upDir.y * sin(cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(cameraMoveAmount) - upDir.z * sin(cameraMoveAmount);
-}
-
-void tiltClockwise() {
-  upDir.x = upDir.x * cos(-cameraMoveAmount) + rightDir.x * sin(-cameraMoveAmount);
-  upDir.y = upDir.y * cos(-cameraMoveAmount) + rightDir.y * sin(-cameraMoveAmount);
-  upDir.z = upDir.z * cos(-cameraMoveAmount) + rightDir.z * sin(-cameraMoveAmount);
-
-  rightDir.x = rightDir.x * cos(-cameraMoveAmount) - upDir.x * sin(-cameraMoveAmount);
-  rightDir.y = rightDir.y * cos(-cameraMoveAmount) - upDir.y * sin(-cameraMoveAmount);
-  rightDir.z = rightDir.z * cos(-cameraMoveAmount) - upDir.z * sin(-cameraMoveAmount);
-}
-
-void moveForward() {
-  eye.x += lookAtDir.x * cameraMoveAmount;
-  eye.y += lookAtDir.y * cameraMoveAmount;
-  eye.z += lookAtDir.z * cameraMoveAmount;
-}
-
-void moveBackward() {
-  eye.x -= lookAtDir.x * cameraMoveAmount;
-  eye.y -= lookAtDir.y * cameraMoveAmount;
-  eye.z -= lookAtDir.z * cameraMoveAmount;
-}
-
-void moveLeft() {
-  eye.x += rightDir.x;
-  eye.y += rightDir.y;
-  eye.z += rightDir.z;
-}
-
-void moveRight() {
-  eye.x -= rightDir.x;
-  eye.y -= rightDir.y;
-  eye.z -= rightDir.z;
-}
-
-void moveUp() {
-  eye.x += upDir.x;
-  eye.y += upDir.y;
-  eye.z += upDir.z;
-}
-
-void moveDown() {
-  eye.x -= upDir.x;
-  eye.y -= upDir.y;
-  eye.z -= upDir.z;
-}
-
-void moveUpWithoutChangingReference() {
-  struct point lookAtPoint;
-
-  lookAtPoint.x = eye.x + lookAtDir.x;
-  lookAtPoint.y = eye.y + lookAtDir.y;
-  lookAtPoint.z = eye.z + lookAtDir.z;
-
-  eye.x += upDir.x * cameraMoveAmount;
-  eye.y += upDir.y * cameraMoveAmount;
-  eye.z += upDir.z * cameraMoveAmount;
-
-  lookAtDir.x = lookAtPoint.x - eye.x;
-  lookAtDir.y = lookAtPoint.y - eye.y;
-  lookAtDir.z = lookAtPoint.z - eye.z;
-}
-
-void moveDownWithoutChangingReference() {
-  struct point lookAtPoint;
-
-  lookAtPoint.x = eye.x + lookAtDir.x;
-  lookAtPoint.y = eye.y + lookAtDir.y;
-  lookAtPoint.z = eye.z + lookAtDir.z;
-
-  eye.x -= upDir.x * cameraMoveAmount;
-  eye.y -= upDir.y * cameraMoveAmount;
-  eye.z -= upDir.z * cameraMoveAmount;
-
-  lookAtDir.x = lookAtPoint.x - eye.x;
-  lookAtDir.y = lookAtPoint.y - eye.y;
-  lookAtDir.z = lookAtPoint.z - eye.z;
-}
-
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
-    case '1':
-      lookLeft();
-      break;
-
-    case '2':
-      lookRight();
-      break;
-
-    case '3':
-      lookUp();
-      break;
-
-    case '4':
-      lookDown();
-      break;
-
-    case '5':
-      tiltCounterClockwise();
-      break;
-
-    case '6':
-      tiltClockwise();
-      break;
-
     case 'a':
-      rotateClockwiseY();
+      camera.moveLeft(cameraMoveAmount);
       break;
-
     case 'd':
-      rotateAntiClockwiseY();
+      camera.moveRight(cameraMoveAmount);
       break;
-
     case 'w':
-      moveUpWithoutChangingReference();
+      camera.moveForward(cameraMoveAmount);
       break;
-
     case 's':
-      moveDownWithoutChangingReference();
+      camera.moveBackward(cameraMoveAmount);
       break;
-
+    case '1':
+      camera.moveUp(cameraMoveAmount);
+      break;
+    case '2':
+      camera.moveDown(cameraMoveAmount);
+      break;
 
     default:
       return;
@@ -235,26 +74,24 @@ void specialKeyListener(int key, int x, int y)
 {
   switch (key) {
     case GLUT_KEY_UP: // down arrow key
-      moveForward();
+      camera.lookUp(cameraRotationAmount);
       break;
     case GLUT_KEY_DOWN: // up arrow key
-      moveBackward();
+      camera.lookDown(cameraRotationAmount);
       break;
 
     case GLUT_KEY_RIGHT:
-      moveLeft();
+      camera.lookRight(cameraRotationAmount);
       break;
     case GLUT_KEY_LEFT:
-      moveRight();
+      camera.lookLeft(cameraRotationAmount);
       break;
-
     case GLUT_KEY_PAGE_UP:
-      moveUp();
+      camera.moveUp(cameraMoveAmount);
       break;
     case GLUT_KEY_PAGE_DOWN:
-      moveDown();
+      camera.moveDown(cameraMoveAmount);
       break;
-
     default:
       return;
   }
@@ -325,9 +162,9 @@ void display() {
   glLoadIdentity();
 
   gluLookAt(
-    eye.x, eye.y, eye.z,
-    eye.x + lookAtDir.x, eye.y + lookAtDir.y, eye.z + lookAtDir.z,
-    upDir.x, upDir.y, upDir.z
+    camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
+    camera.getLookAtPos().x, camera.getLookAtPos().y, camera.getLookAtPos().z,
+    camera.getUpDir().x, camera.getUpDir().y, camera.getUpDir().z
   );
 
   glRotated(rotationAngle, 0, 1, 0);
@@ -341,7 +178,7 @@ void display() {
   vector<normalLight> normalLights = parser.getNormalLights();
 
   for (int i = 0; i < normalLights.size(); i++) {
-    cout << "Normal light " << i << ": " << normalLights[i].position.x << " " << normalLights[i].position.y << " " << normalLights[i].position.z << endl;
+    // cout << "Normal light " << i << ": " << normalLights[i].position.x << " " << normalLights[i].position.y << " " << normalLights[i].position.z << endl;
     glPushMatrix();
     glTranslatef(normalLights[i].position.x, normalLights[i].position.y, normalLights[i].position.z);
     glColor3f(0.5, 0.5, 0.5);
@@ -382,10 +219,12 @@ void display() {
 
 
 int main(int argc, char **argv) {
-  eye = {0, 30, 70};
-  lookAtDir = {0, -30, -70};
-  upDir = {0, 7/sqrt(58), 3/sqrt(58)};
-  rightDir = {1, 0, 0};
+  Vector eye = {0, 40, 100};
+  Vector lookAtPos(0, 0, 0);
+  Vector upDir(0, 1, 0);
+
+  camera = Camera(eye, lookAtPos, upDir);
+
 
   parser.parse();
   parser.printDescription();
