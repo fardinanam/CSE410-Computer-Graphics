@@ -5,6 +5,7 @@
 #include <sstream>
 #include "camera.hpp"
 #include "parser.hpp"
+#include "utils.hpp"
 
 #define INIT_WINDOW_WIDTH 700
 #define INIT_WINDOW_HEIGHT 700

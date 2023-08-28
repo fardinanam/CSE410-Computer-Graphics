@@ -6,6 +6,7 @@
 #include "vector.hpp"
 #include "object.hpp"
 #include "bitmap_image.hpp"
+#include "utils.hpp"
 
 class Camera {
 private:
@@ -19,11 +20,12 @@ private:
   double aspectRatio;
   int pixelsY;
   
-public:
   void setUpDir();
   Vector pixelToVect(int x, int y);
-  Color trace(const std::vector<Object *> &objects, Vector p, Vector d, int levelOfRecursion);
+  Color trace(const std::vector<Object *> &objects, const std::vector<normalLight> &normalLights,
+    const std::vector<spotLight> &spotLights, const Vector p, const Vector d, const int levelOfRecursion);
 
+public:
   Camera();
   Camera(Vector position, Vector lookAtPos, Vector upDir);
   Vector getPosition();
@@ -53,7 +55,8 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
-  void capture(const std::vector<Object*>& objects, int levelOfRecursion);
+  void capture(const std::vector<Object *> &objects, const std::vector<normalLight> &normalLights
+    , std::vector<spotLight> &spotLights, int levelOfRecursion);
 
   friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
@@ -211,7 +214,8 @@ Vector Camera::pixelToVect(int pxX, int pxY) {
   return p;
 }
 
-Color Camera::trace(const std::vector<Object*>& objects, Vector p, Vector d, int levelOfRecursion) {
+Color Camera::trace(const std::vector<Object*>& objects, const std::vector<normalLight>& normalLights,
+    const std::vector<spotLight>& spotLights, Vector p, Vector d, const int levelOfRecursion) {
   double min_t = -1;
   Object* closestObject = nullptr;
   for (int i = 0; i < objects.size(); i++) {
@@ -233,10 +237,22 @@ Color Camera::trace(const std::vector<Object*>& objects, Vector p, Vector d, int
   }
 
   Vector intersectionPoint = p + d * min_t;
+  Vector normal = closestObject->normal(intersectionPoint);
+  // for each light source, check 
+  // if the source illuminates the intersection point
+  // TODO: check if the light source is blocked by another object
+  // see provided materials for the formula
+  double lambert = 0;
+  double phong = 0;
+
+  for (normalLight s : normalLights) {
+
+  }
   return closestObject->getColor(intersectionPoint);
 }
 
-void Camera::capture(const std::vector<Object*> &objects, int levelOfRecursion) {
+void Camera::capture(const std::vector<Object*> &objects, const std::vector<normalLight>& normalLights
+    , std::vector<spotLight>& spotLights, int levelOfRecursion) {
   std::cout << "Capturing image...\n" << std::endl;
   
   double fovX = fovY * aspectRatio;
@@ -254,14 +270,19 @@ void Camera::capture(const std::vector<Object*> &objects, int levelOfRecursion) 
       Vector d = p - position;
       d = d.normalize();
 
-      Color color = trace(objects, p, d, levelOfRecursion);
+      Color color = trace(objects, normalLights, spotLights, p, d, levelOfRecursion);
       image.set_pixel(j, i, color.r * 255, color.g * 255, color.b * 255);
 
-      // remove previous progress message
-      std::cout << "\033[F";
-      std::cout << "Progress: " << (i * pixelsX + j) * 100 / totalPixels << "%" << std::endl;
+      int completion = (i * pixelsX + j) * 100 / totalPixels;
+      if (completion % 10 == 0){
+        std::cout << "\033[F";
+        std::cout << "Progress: " << completion << "%" << std::endl;
+      }
     }
   }
+
+  std::cout << "\033[F";
+  std::cout << "Progress: 100%" << std::endl;
 
   image.save_image("out.bmp");
   std::cout << "Image saved to out.bmp" << std::endl;

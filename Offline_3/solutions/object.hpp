@@ -2,10 +2,7 @@
 #define OBJECT_HPP
 
 #include "vector.hpp"
-
-struct Color {
-  double r, g, b;
-};
+#include "utils.hpp"
 
 class Object {
 private:
@@ -21,6 +18,7 @@ public:
     specular = 0;
     shininess = 0;
   }
+
   Object(Color color, double ambient, double diffuse, double reflection, double specular, double shininess) {
     this->color = color;
     this->ambient = ambient;
@@ -35,7 +33,7 @@ public:
    * @return: the distance from p to the intersection point
   */
   virtual double intersect_t(const Vector p, const Vector d) = 0;
-  // virtual Vector normal(const Vector p) = 0;
+  virtual Vector normal(const Vector p) = 0;
   virtual void draw() = 0;
 
   virtual Color getColor() {

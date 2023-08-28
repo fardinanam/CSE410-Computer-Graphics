@@ -13,6 +13,7 @@
 #include "pyramid.hpp"
 #include "quadrilateral.hpp"
 #include "checkerboard.hpp"
+#include "utils.hpp"
 
 struct description {
   double near, far;
@@ -22,18 +23,6 @@ struct description {
   int numPixelsX, numPixelsY;
   double checkerBoardCellWidth;
   double checkerBoardAmbient, checkerBoardDiffuse, checkerBoardReflection;
-};
-
-struct normalLight {
-  Vector position;
-  double fallOff;
-};
-
-struct spotLight {
-  Vector position;
-  Vector lookAt;
-  double fallOff;
-  double cutOffAngle;
 };
 
 class DescriptionParser {
