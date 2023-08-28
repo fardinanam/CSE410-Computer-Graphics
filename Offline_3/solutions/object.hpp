@@ -3,9 +3,13 @@
 
 #include "vector.hpp"
 
+struct Color {
+  double r, g, b;
+};
+
 class Object {
 private:
-  Vector color;
+  Color color;
   double ambient, diffuse, reflection, specular;
   double shininess;
 public:
@@ -17,7 +21,7 @@ public:
     specular = 0;
     shininess = 0;
   }
-  Object(Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) {
+  Object(Color color, double ambient, double diffuse, double reflection, double specular, double shininess) {
     this->color = color;
     this->ambient = ambient;
     this->diffuse = diffuse;
@@ -34,7 +38,11 @@ public:
   // virtual Vector normal(const Vector p) = 0;
   virtual void draw() = 0;
 
-  virtual Vector getColor() {
+  virtual Color getColor() {
+    return color;
+  }
+
+  virtual Color getColor(Vector p) {
     return color;
   }
 

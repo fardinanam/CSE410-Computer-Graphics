@@ -9,7 +9,7 @@
 class Triangle : public Object {
 private:
   Vector p1, p2, p3;
-
+  
 public:
   Triangle() {
     p1 = {0, 0, 0};
@@ -17,7 +17,7 @@ public:
     p3 = {0, 0, 0};
   }
   
-  Triangle(Vector p1, Vector p2, Vector p3, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Triangle(Vector p1, Vector p2, Vector p3, Color color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->p1 = p1;
     this->p2 = p2;
@@ -31,9 +31,30 @@ public:
     return v1.cross(v2).normalize();
   }
 
+  Color getColor() {
+    return Object::getColor();
+  }
+
+  Color getColor(Vector p) {
+    return getColor();
+  }
+
   double intersect_t(const Vector p, const Vector d) {
     // Barycentric coordinates
-    double area = 0.5 * (p2 - p1).cross(p3 - p1).length();
+    Matrix A = Matrix(3, 3);
+    A.set(0, 0, p1.x - p2.x);
+    A.set(0, 1, p1.x - p3.x);
+    A.set(0, 2, d.x);
+
+    A.set(1, 0, p1.y - p2.y);
+    A.set(1, 1, p1.y - p3.y);
+    A.set(1, 2, d.y);
+
+    A.set(2, 0, p1.z - p2.z);
+    A.set(2, 1, p1.z - p3.z);
+    A.set(2, 2, d.z);
+
+    double detA = A.determinant();
 
     Matrix betaMat = Matrix(3, 3);
     betaMat.set(0, 0, p1.x - p.x);
@@ -48,7 +69,7 @@ public:
     betaMat.set(2, 1, p1.z - p3.z);
     betaMat.set(2, 2, d.z);
 
-    double beta = betaMat.determinant() / area;
+    double beta = betaMat.determinant() / detA;
 
     Matrix gammaMat = Matrix(3, 3);
     gammaMat.set(0, 0, p1.x - p2.x);
@@ -63,7 +84,7 @@ public:
     gammaMat.set(2, 1, p1.z - p.z);
     gammaMat.set(2, 2, d.z);
 
-    double gamma = gammaMat.determinant() / area;
+    double gamma = gammaMat.determinant() / detA;
 
     Matrix tMat = Matrix(3, 3);
     tMat.set(0, 0, p1.x - p2.x);
@@ -78,9 +99,9 @@ public:
     tMat.set(2, 1, p1.z - p3.z);
     tMat.set(2, 2, p1.z - p.z);
 
-    double t = tMat.determinant() / area;
+    double t = tMat.determinant() / detA;
 
-    if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
+    if (beta > 0 && gamma > 0 && beta + gamma < 1 && t > 0) {
       return t;
     } 
 
@@ -88,7 +109,7 @@ public:
   }
 
   void draw() {
-    glColor3f(getColor().x, getColor().y, getColor().z);
+    glColor3f(getColor().r, getColor().g, getColor().b);
     glPushMatrix();
     glBegin(GL_TRIANGLES);
     glVertex3f(p1.x, p1.y, p1.z);

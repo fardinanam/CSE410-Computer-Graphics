@@ -15,7 +15,7 @@ private:
   double width, height;
 
 public:
-  Pyramid(Vector bottomLowerLeft, double width, double height, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Pyramid(Vector bottomLowerLeft, double width, double height, Color color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->width = width;
@@ -39,6 +39,14 @@ public:
 
 
   // }
+
+  Color getColor(Vector p) {
+    return Object::getColor();
+  }
+
+  Color getColor() {
+    return Object::getColor();
+  }
 
   double intersect_t(const Vector p, const Vector d) {
     // call intersect_t on all triangles and base

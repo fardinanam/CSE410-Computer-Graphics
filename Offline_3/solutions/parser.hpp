@@ -12,6 +12,7 @@
 #include "cube.hpp"
 #include "pyramid.hpp"
 #include "quadrilateral.hpp"
+#include "checkerboard.hpp"
 
 struct description {
   double near, far;
@@ -38,40 +39,46 @@ struct spotLight {
 class DescriptionParser {
 private:
   std::vector<Object*> objects;
+  Checkerboard checkerboard;
   description viewDescription;
   std::vector<normalLight> normalLights;
   std::vector<spotLight> spotLights;
   std::string descriptionFileName;
 
   void pushCheckerBoard() {
-    int numberOfCells = 1000;
-    double widthOfEachCell = viewDescription.checkerBoardCellWidth;
+    checkerboard = Checkerboard(viewDescription.checkerBoardCellWidth, viewDescription.checkerBoardAmbient
+      , viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0);
 
-    double x = -numberOfCells * widthOfEachCell/ 2;
-    double y = 0;
-    double z = numberOfCells * widthOfEachCell / 2;
+    objects.push_back(&checkerboard);
 
-    for (int i = 0; i < numberOfCells; i++) {
-      for (int j = 0; j < numberOfCells; j++) {
-        Vector color;
-        if ((i + j) % 2 == 0) {
-          color = { 1, 1, 1 };
-        } else {
-          color = { 0, 0, 0 };
-        }
+    // int numberOfCells = 0;
+    // double widthOfEachCell = viewDescription.checkerBoardCellWidth;
 
-        Vector lowerLeft = { x, y, z };
-        Vector lowerRight = { x + widthOfEachCell, y, z };
-        Vector upperLeft = { x, y, z - widthOfEachCell };
-        Vector upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
+    // double x = -numberOfCells * widthOfEachCell/ 2;
+    // double y = 0;
+    // double z = numberOfCells * widthOfEachCell / 2;
 
-        objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperRight, upperLeft
-          , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
-        x += widthOfEachCell;
-      }
-      x = -numberOfCells * widthOfEachCell / 2;
-      z -= widthOfEachCell;
-    }
+    // for (int i = 0; i < numberOfCells; i++) {
+    //   for (int j = 0; j < numberOfCells; j++) {
+    //     Color color;
+    //     if ((i + j) % 2 == 0) {
+    //       color = { 1, 1, 1 };
+    //     } else {
+    //       color = { 0, 0, 0 };
+    //     }
+
+    //     Vector lowerLeft = { x, y, z };
+    //     Vector lowerRight = { x + widthOfEachCell, y, z };
+    //     Vector upperLeft = { x, y, z - widthOfEachCell };
+    //     Vector upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
+
+    //     objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperRight, upperLeft
+    //       , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
+    //     x += widthOfEachCell;
+    //   }
+    //   x = -numberOfCells * widthOfEachCell / 2;
+    //   z -= widthOfEachCell;
+    // }
   }
 public:
   DescriptionParser() {
@@ -133,7 +140,7 @@ public:
           if (objectType == "pyramid") {
             Vector lowest;
             GLfloat width, height;
-            Vector color;
+            Color color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -146,7 +153,7 @@ public:
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
-            ss >> color.x >> color.y >> color.z;
+            ss >> color.r >> color.g >> color.b;
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
@@ -162,7 +169,7 @@ public:
           else if (objectType == "sphere") {
             Vector center;
             GLfloat radius;
-            Vector color;
+            Color color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -175,7 +182,7 @@ public:
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
-            ss >> color.x >> color.y >> color.z;
+            ss >> color.r >> color.g >> color.b;
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
@@ -189,7 +196,7 @@ public:
           } else if (objectType == "cube") {
             Vector bottomLowerLeft;
             GLfloat length;
-            Vector color;
+            Color color;
             double ambient, diffuse, reflection, specular, shininess;
 
             getline(descriptionFile, line);
@@ -202,7 +209,7 @@ public:
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
-            ss >> color.x >> color.y >> color.z;
+            ss >> color.r >> color.g >> color.b;
 
             getline(descriptionFile, line);
             ss = std::stringstream(line);
@@ -278,6 +285,10 @@ public:
 
   std::vector<Object*> getObjects() {
     return objects;
+  }
+
+  Checkerboard getCheckerboard() {
+    return checkerboard;
   }
 
   std::vector<normalLight> getNormalLights() {

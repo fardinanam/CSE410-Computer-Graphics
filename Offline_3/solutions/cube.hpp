@@ -12,7 +12,7 @@ private:
   double side;  
   Quadrilateral faces[6];
 public:
-  Cube(Vector bottomLowerLeft, double side, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Cube(Vector bottomLowerLeft, double side, Color color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->side = side;
@@ -74,6 +74,14 @@ public:
       n.z = 1;
     }
     return n;
+  }
+
+  Color getColor() {
+    return Object::getColor();
+  }
+
+  Color get_color(Vector p) {
+    return getColor();
   }
 
   void draw() {

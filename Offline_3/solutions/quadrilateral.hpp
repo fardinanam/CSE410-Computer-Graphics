@@ -17,7 +17,7 @@ public:
     upperRight = {0, 0, 0};
   }
   
-  Quadrilateral(Vector lowerLeft, Vector lowerRight, Vector upperRight, Vector upperLeft, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess)
+  Quadrilateral(Vector lowerLeft, Vector lowerRight, Vector upperRight, Vector upperLeft, Color color, double ambient, double diffuse, double reflection, double specular, double shininess)
       : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->lowerLeft = lowerLeft;
     this->lowerRight = lowerRight;
@@ -54,8 +54,16 @@ public:
     }
   }
 
+  Color getColor() {
+    return Object::getColor();
+  }
+
+  Color getColor(Vector p) {
+    return getColor();
+  }
+
   void draw() {
-    glColor3f(getColor().x, getColor().y, getColor().z);
+    glColor3f(getColor().r, getColor().g, getColor().b);
     glPushMatrix();
     glBegin(GL_QUADS);
     glVertex3f(lowerLeft.x, lowerLeft.y, lowerLeft.z);

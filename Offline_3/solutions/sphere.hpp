@@ -11,7 +11,7 @@ private:
   double radius;
 
 public:
-  Sphere(Vector center, double radius, Vector color, double ambient, double diffuse, double reflection, double specular, double shininess) 
+  Sphere(Vector center, double radius, Color color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->center = center;
     this->radius = radius;
@@ -49,9 +49,17 @@ public:
   Vector normal(const Vector p) {
     return (p - center).normalize();
   }
-
+  
+  Color getColor() {
+    return Object::getColor();
+  }
+  
+  Color getColor(Vector p) {
+    return getColor();
+  }
+  
   void draw() {
-    glColor3f(getColor().x, getColor().y, getColor().z);
+    glColor3f(getColor().r, getColor().g, getColor().b);
     glPushMatrix();
     glTranslatef(center.x, center.y, center.z);
     glutSolidSphere(radius, 100, 100);

@@ -1,9 +1,11 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#include <cmath>
 #include <vector>
 #include "vector.hpp"
 #include "object.hpp"
+#include "bitmap_image.hpp"
 
 class Camera {
 private:
@@ -17,9 +19,11 @@ private:
   double aspectRatio;
   int pixelsY;
   
+public:
   void setUpDir();
   Vector pixelToVect(int x, int y);
-public:
+  Color trace(const std::vector<Object *> &objects, Vector p, Vector d, int levelOfRecursion);
+
   Camera();
   Camera(Vector position, Vector lookAtPos, Vector upDir);
   Vector getPosition();
@@ -49,7 +53,7 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
-  void capture(const std::vector<Object*>& objects);
+  void capture(const std::vector<Object*>& objects, int levelOfRecursion);
 
   friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
@@ -187,14 +191,80 @@ void Camera::lookDown(double angle) {
   lookUp(-angle);
 }
 
-Vector Camera::pixelToVect(int x, int y) {
-  return Vector();
+Vector Camera::pixelToVect(int pxX, int pxY) {
+  double fovX = fovY * aspectRatio;
+  double fovXInRadians = fovX * M_PI / 180;
+  double fovYInRadians = fovY * M_PI / 180;
+  Vector middleOfScreen = position + getLookDir() * nearZ;
+  int pixelsX = pixelsY * aspectRatio;
+
+  double screenWidthInWorld = 2 * nearZ * tan(fovXInRadians / 2);
+  double screenHeightInWorld = 2 * nearZ * tan(fovYInRadians / 2);
+  double xRatio = screenWidthInWorld / pixelsX;
+  double yRatio = screenWidthInWorld / pixelsY;
+
+  double x = (pxX - pixelsX / 2) * xRatio;
+  double y = -(pxY - pixelsY / 2) * yRatio;
+
+  Vector p = middleOfScreen + getRightDir() * x + getUpDir() * y;
+
+  return p;
 }
 
-void Camera::capture(const std::vector<Object*> &objects) {
+Color Camera::trace(const std::vector<Object*>& objects, Vector p, Vector d, int levelOfRecursion) {
+  double min_t = -1;
+  Object* closestObject = nullptr;
+  for (int i = 0; i < objects.size(); i++) {
+    double t = objects[i]->intersect_t(p, d);
+    if (t != -1) {
+      if (min_t == -1 || t < min_t) {
+        min_t = t;
+        closestObject = objects[i];
+      }
+    }
+  }
+
+  if (closestObject == nullptr) {
+    return {0, 0, 0};
+  }
+  // check if t is beyond the far plane
+  if (min_t > farZ) {
+    return {0, 0, 0};
+  }
+
+  Vector intersectionPoint = p + d * min_t;
+  return closestObject->getColor(intersectionPoint);
+}
+
+void Camera::capture(const std::vector<Object*> &objects, int levelOfRecursion) {
+  std::cout << "Capturing image...\n" << std::endl;
+  
   double fovX = fovY * aspectRatio;
+  int pixelsX = pixelsY * aspectRatio;
 
+  bitmap_image image(pixelsX, pixelsY);
+  image.set_all_channels(0, 0, 0);
 
+  int totalPixels = pixelsX * pixelsY;
+
+  for (int i = 0; i < pixelsY; i++) {
+    for (int j = 0; j < pixelsX; j++) {
+      Vector p = pixelToVect(j, i);
+
+      Vector d = p - position;
+      d = d.normalize();
+
+      Color color = trace(objects, p, d, levelOfRecursion);
+      image.set_pixel(j, i, color.r * 255, color.g * 255, color.b * 255);
+
+      // remove previous progress message
+      std::cout << "\033[F";
+      std::cout << "Progress: " << (i * pixelsX + j) * 100 / totalPixels << "%" << std::endl;
+    }
+  }
+
+  image.save_image("out.bmp");
+  std::cout << "Image saved to out.bmp" << std::endl;
 }
 
 std::ostream &operator<<(std::ostream &out, const Camera &c) {

@@ -20,7 +20,7 @@ DescriptionParser parser("description.txt");
 Camera camera;
 
 const GLfloat cameraRotationAmount = 10;
-const GLfloat cameraMoveAmount = 1;
+const GLfloat cameraMoveAmount = 5;
 GLfloat rotationAngle = 0.0f;
 
 void initGL() {
@@ -64,7 +64,7 @@ void keyboardListener(unsigned char key, int x, int y) {
       camera.moveDown(cameraMoveAmount);
       break;
     case '0':
-      camera.capture(parser.getObjects());
+      camera.capture(parser.getObjects(), parser.getViewDescription().levelOfRecursion);
       break;
     default:
       return;
@@ -170,11 +170,13 @@ void display() {
 
   glRotated(rotationAngle, 0, 1, 0);
 
-  drawAxes(20.0);
+  drawAxes(1000.0);
   vector<Object*> objects = parser.getObjects();
   for (int i = 0; i < objects.size(); i++) {
     objects[i]->draw();
   }
+
+  parser.getCheckerboard().draw(camera.getPosition());
 
   vector<normalLight> normalLights = parser.getNormalLights();
 
