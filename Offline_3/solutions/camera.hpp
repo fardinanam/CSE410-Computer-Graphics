@@ -1,7 +1,9 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#include <vector>
 #include "vector.hpp"
+#include "object.hpp"
 
 class Camera {
 private:
@@ -9,7 +11,14 @@ private:
   Vector lookAtPos;
   Vector upDir;
 
+  double nearZ;
+  double farZ;
+  double fovY;
+  double aspectRatio;
+  int pixelsY;
+  
   void setUpDir();
+  Vector pixelToVect(int x, int y);
 public:
   Camera();
   Camera(Vector position, Vector lookAtPos, Vector upDir);
@@ -18,6 +27,17 @@ public:
   Vector getLookDir();
   Vector getUpDir();
   Vector getRightDir();
+  double getNearZ();
+  double getFarZ();
+  double getAspectRatio();
+  double getFovY();
+  int getPixelsY();
+
+  void setNearZ(double z);
+  void setFarZ(double z);
+  void setAspectRatio(double r);
+  void setFovY(double y);
+  void setPixelsY(int n);
 
   void moveForward(double distance);
   void moveBackward(double distance);
@@ -29,6 +49,7 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
+  void capture(const std::vector<Object*>& objects);
 
   friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
@@ -68,6 +89,46 @@ Vector Camera::getUpDir() {
 
 Vector Camera::getRightDir() {
   return getLookDir().cross(this->upDir).normalize();
+}
+
+double Camera::getNearZ() {
+  return this->nearZ;
+}
+
+double Camera::getFarZ() {
+  return this->farZ;
+}
+
+double Camera::getFovY() {
+  return this->fovY;
+}
+
+double Camera::getAspectRatio() {
+  return this->aspectRatio;
+}
+
+int Camera::getPixelsY() {
+  return this->pixelsY;
+}
+
+void Camera::setNearZ(double z) { 
+  this->nearZ = z;
+}
+
+void Camera::setFarZ(double z) { 
+  this->farZ = z; 
+}
+
+void Camera::setFovY(double y) { 
+  this->fovY = y; 
+}
+
+void Camera::setAspectRatio(double r) { 
+  this->aspectRatio = r; 
+}
+
+void Camera::setPixelsY(int n) {
+  this->pixelsY = n;
 }
 
 void Camera::moveForward(double distance) {
@@ -126,11 +187,27 @@ void Camera::lookDown(double angle) {
   lookUp(-angle);
 }
 
+Vector Camera::pixelToVect(int x, int y) {
+  return Vector();
+}
+
+void Camera::capture(const std::vector<Object*> &objects) {
+  double fovX = fovY * aspectRatio;
+
+
+}
+
 std::ostream &operator<<(std::ostream &out, const Camera &c) {
   out << "Camera: " << std::endl;
   out << "  Position: " << c.position << std::endl;
   out << "  LookAtPos: " << c.lookAtPos << std::endl;
   out << "  UpDir: " << c.upDir << std::endl;
+  out << " Near: " << c.nearZ << std::endl;
+  out << " Far: " << c.farZ << std::endl;
+  out << " FovY: " << c.fovY << std::endl;
+  out << " Aspect Ratio: " << c.aspectRatio << std::endl;
+
   return out;
 }
+
 #endif // CAMERA_HPP

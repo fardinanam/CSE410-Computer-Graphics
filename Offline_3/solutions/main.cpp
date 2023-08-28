@@ -43,10 +43,6 @@ void reshapeListener(GLsizei width, GLsizei height) {
   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
-void captureFrame() {
-  
-}
-
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
     case 'a':
@@ -68,7 +64,7 @@ void keyboardListener(unsigned char key, int x, int y) {
       camera.moveDown(cameraMoveAmount);
       break;
     case '0':
-      captureFrame();
+      camera.capture(parser.getObjects());
       break;
     default:
       return;
@@ -161,8 +157,7 @@ void display() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  description d = parser.getViewDescription();
-  gluPerspective(d.fovY, d.aspectRatio, d.near, d.far);
+  gluPerspective(camera.getFovY(), camera.getAspectRatio(), camera.getNearZ(), camera.getFarZ());
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -207,6 +202,14 @@ int main(int argc, char **argv) {
 
   parser.parse();
   parser.printDescription();
+
+  description d = parser.getViewDescription();
+
+  camera.setNearZ(d.near);
+  camera.setFarZ(d.far);
+  camera.setAspectRatio(d.aspectRatio);
+  camera.setFovY(d.fovY);
+  camera.setPixelsY(d.numPixelsY);
 
   // Initialize glut
   glutInit(&argc, argv);
