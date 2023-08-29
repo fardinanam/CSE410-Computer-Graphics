@@ -249,15 +249,17 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
   double phong = 0;
 
   for (normalLight s : normalLights) {
-    double ps = (s.position - intersectionPoint).length();
-    Vector toSource = (s.position - intersectionPoint).normalize();
+    Vector ps = s.position - intersectionPoint;
+    Vector toSource = ps.normalize();
+    double distance = ps.length();
+
     // check if the light source is blocked by another object
     bool blocked = false;
     for (Object *o : objects) {
       // if (o == closestObject) continue;
       double t = o->intersect_t(intersectionPoint, toSource);
       double epsilon = 0.0001;
-      if (t != -1 && t > epsilon && t < ps) {
+      if (t != -1 && t > epsilon && t < distance) {
         blocked = true;
         break;
       }
@@ -266,16 +268,17 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
     if (blocked) continue;
 
     Vector normal = closestObject->normal(intersectionPoint);
-    double scalingFactor = exp(-ps * ps * s.fallOff);
+    double scalingFactor = exp(-distance * distance * s.fallOff);
     lambert += toSource.dot(normal); // * scalingFactor;
   } 
 
   Color color = closestObject->getColor(intersectionPoint);
   double diffuse = closestObject->getDiffuse();
   double ambient = closestObject->getAmbient();
-  color = {color.r * lambert * diffuse + color.r * ambient
-    , color.g * lambert * diffuse + color.g * ambient
-    , color.b * lambert * diffuse + color.b * ambient
+  color = {
+    color.r * lambert * diffuse + color.r * ambient,
+    color.g * lambert * diffuse + color.g * ambient,
+    color.b * lambert * diffuse + color.b * ambient
   };
 
   return color;
