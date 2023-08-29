@@ -245,6 +245,10 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
 
   Vector intersectionPoint = p + d * min_t;
   Vector normal = closestObject->normal(intersectionPoint);
+
+  if (normal.dot(d) > 0) {
+    normal = normal * -1;
+  }
   
   double lambert = 0;
   double phong = 0;
@@ -253,6 +257,9 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   for (Light s : lights) {
     Vector ps = s.position - intersectionPoint;
     Vector toSource = ps.normalize();
+
+    // if the light source is on the opposite side of camera from the object, ignore it
+    if (normal.dot(toSource) < EPSILON) continue;
 
     if (s.cutOffAngle != 360) {
       Vector lightDir = (s.lookAt - s.position).normalize();
@@ -266,19 +273,13 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
     bool blocked = false;
     for (Object *o : objects) {
       double t = o->intersect_t(intersectionPoint, toSource);
-      if (t != -1 && t > EPSILON && t < distance) {
+      if (t > EPSILON && t < distance) {
         blocked = true;
         break;
       }
     }
 
     if (blocked) continue;
-
-    Vector normal = closestObject->normal(intersectionPoint);
-    // reverse the normal if it is facing away from the incident ray
-    if (normal.dot(d) > 0) {
-      normal = normal * -1;
-    }
 
     double scalingFactor = exp(-distance * distance * s.fallOff);
     lambert += toSource.dot(normal) * scalingFactor;
@@ -288,9 +289,9 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   
     phong += pow(reflected.dot(toSource), closestObject->getShininess()) * scalingFactor;
 
-    Vector intersectionPointWithEpsilon = intersectionPoint + normal * EPSILON;
-    reflectedColor = trace(objects, lights, intersectionPointWithEpsilon
-      , reflected, levelOfRecursion - 1);
+    // Vector intersectionPointWithEpsilon = intersectionPoint + normal * EPSILON;
+    // reflectedColor = trace(objects, lights, intersectionPointWithEpsilon
+    //   , reflected, levelOfRecursion - 1);
   }
 
   Color color = closestObject->getColor(intersectionPoint);
