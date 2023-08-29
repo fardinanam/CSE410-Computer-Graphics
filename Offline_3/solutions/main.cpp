@@ -65,7 +65,8 @@ void keyboardListener(unsigned char key, int x, int y) {
       camera.moveDown(cameraMoveAmount);
       break;
     case '0':
-      camera.capture(parser.getObjects(), parser.getViewDescription().levelOfRecursion);
+      camera.capture(parser.getObjects(), parser.getNormalLights()
+        , parser.getSpotLights(), parser.getViewDescription().levelOfRecursion);
       break;
     default:
       return;

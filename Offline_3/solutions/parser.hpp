@@ -35,39 +35,11 @@ private:
   std::string descriptionFileName;
 
   void pushCheckerBoard() {
-    checkerboard = Checkerboard(viewDescription.checkerBoardCellWidth, viewDescription.checkerBoardAmbient
+    Checkerboard* checkerboard = new Checkerboard(viewDescription.checkerBoardCellWidth, viewDescription.checkerBoardAmbient
       , viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0);
 
-    objects.push_back(&checkerboard);
-
-    // int numberOfCells = 0;
-    // double widthOfEachCell = viewDescription.checkerBoardCellWidth;
-
-    // double x = -numberOfCells * widthOfEachCell/ 2;
-    // double y = 0;
-    // double z = numberOfCells * widthOfEachCell / 2;
-
-    // for (int i = 0; i < numberOfCells; i++) {
-    //   for (int j = 0; j < numberOfCells; j++) {
-    //     Color color;
-    //     if ((i + j) % 2 == 0) {
-    //       color = { 1, 1, 1 };
-    //     } else {
-    //       color = { 0, 0, 0 };
-    //     }
-
-    //     Vector lowerLeft = { x, y, z };
-    //     Vector lowerRight = { x + widthOfEachCell, y, z };
-    //     Vector upperLeft = { x, y, z - widthOfEachCell };
-    //     Vector upperRight = { x + widthOfEachCell, y, z - widthOfEachCell };
-
-    //     objects.push_back(new Quadrilateral(lowerLeft, lowerRight, upperRight, upperLeft
-    //       , color, viewDescription.checkerBoardAmbient, viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0, 0));
-    //     x += widthOfEachCell;
-    //   }
-    //   x = -numberOfCells * widthOfEachCell / 2;
-    //   z -= widthOfEachCell;
-    // }
+    this->checkerboard = *checkerboard;
+    objects.push_back(checkerboard);
   }
 public:
   DescriptionParser() {

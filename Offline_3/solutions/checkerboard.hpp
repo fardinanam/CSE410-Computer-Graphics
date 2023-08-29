@@ -10,7 +10,7 @@ class Checkerboard : public Object {
 private:
   double width;
   double startX, startZ;
-  int n = 500;
+  int n = 50;
 
   Color getColor(int x, int z) {
     if ((x + z) % (2 * (int)width) == 0) {

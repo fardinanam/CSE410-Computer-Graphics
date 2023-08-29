@@ -56,7 +56,7 @@ public:
   void lookUp(double angle);
   void lookDown(double angle);
   void capture(const std::vector<Object *> &objects, const std::vector<normalLight> &normalLights
-    , std::vector<spotLight> &spotLights, int levelOfRecursion);
+    , const std::vector<spotLight> &spotLights, int levelOfRecursion);
 
   friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
@@ -231,8 +231,11 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
   if (closestObject == nullptr) {
     return {0, 0, 0};
   }
+
   // check if t is beyond the far plane
-  if (min_t > farZ) {
+  double cosTheta = d.dot(getLookDir());
+  double dist = farZ / cosTheta;
+  if (min_t > dist) {
     return {0, 0, 0};
   }
 
@@ -246,13 +249,40 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
   double phong = 0;
 
   for (normalLight s : normalLights) {
+    double ps = (s.position - intersectionPoint).length();
+    Vector toSource = (s.position - intersectionPoint).normalize();
+    // check if the light source is blocked by another object
+    bool blocked = false;
+    for (Object *o : objects) {
+      // if (o == closestObject) continue;
+      double t = o->intersect_t(intersectionPoint, toSource);
+      double epsilon = 0.0001;
+      if (t != -1 && t > epsilon && t < ps) {
+        blocked = true;
+        break;
+      }
+    }
 
-  }
-  return closestObject->getColor(intersectionPoint);
+    if (blocked) continue;
+
+    Vector normal = closestObject->normal(intersectionPoint);
+    double scalingFactor = exp(-ps * ps * s.fallOff);
+    lambert += toSource.dot(normal); // * scalingFactor;
+  } 
+
+  Color color = closestObject->getColor(intersectionPoint);
+  double diffuse = closestObject->getDiffuse();
+  double ambient = closestObject->getAmbient();
+  color = {color.r * lambert * diffuse + color.r * ambient
+    , color.g * lambert * diffuse + color.g * ambient
+    , color.b * lambert * diffuse + color.b * ambient
+  };
+
+  return color;
 }
 
 void Camera::capture(const std::vector<Object*> &objects, const std::vector<normalLight>& normalLights
-    , std::vector<spotLight>& spotLights, int levelOfRecursion) {
+    , const std::vector<spotLight>& spotLights, int levelOfRecursion) {
   std::cout << "Capturing image...\n" << std::endl;
   
   double fovX = fovY * aspectRatio;

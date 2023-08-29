@@ -34,11 +34,9 @@ public:
   }
 
   // // TODO: review before use
-  // Vector normal(const Vector p) {
-    
-
-
-  // }
+  Vector normal(const Vector p) {
+    return Vector();
+  }
 
   Color getColor(Vector p) {
     return Object::getColor();
