@@ -204,7 +204,7 @@ Vector Camera::pixelToVect(int pxX, int pxY) {
   double screenWidthInWorld = 2 * nearZ * tan(fovXInRadians / 2);
   double screenHeightInWorld = 2 * nearZ * tan(fovYInRadians / 2);
   double xRatio = screenWidthInWorld / pixelsX;
-  double yRatio = screenWidthInWorld / pixelsY;
+  double yRatio = screenHeightInWorld / pixelsY;
 
   double x = (pxX - pixelsX / 2) * xRatio;
   double y = -(pxY - pixelsY / 2) * yRatio;
@@ -258,8 +258,7 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
     for (Object *o : objects) {
       // if (o == closestObject) continue;
       double t = o->intersect_t(intersectionPoint, toSource);
-      double epsilon = 0.0001;
-      if (t != -1 && t > epsilon && t < distance) {
+      if (t != -1 && t > EPSILON && t < distance) {
         blocked = true;
         break;
       }

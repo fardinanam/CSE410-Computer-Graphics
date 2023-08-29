@@ -31,15 +31,15 @@ public:
     double t1 = -b - sqrt(delta);
     double t2 = -b + sqrt(delta);
 
-    if (t1 < 0 && t2 < 0) {
+    if (t1 < EPSILON && t2 < EPSILON) {
       return -1;
     }
 
-    if (t1 < 0) {
+    if (t1 < EPSILON) {
       return t2;
     }
 
-    if (t2 < 0) {
+    if (t2 < EPSILON) {
       return t1;
     }
 

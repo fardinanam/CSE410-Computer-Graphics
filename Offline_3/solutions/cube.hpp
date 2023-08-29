@@ -40,7 +40,7 @@ public:
 
     for (int i = 0; i < 6; i++) {
       double t = faces[i].intersect_t(p, d);
-      if (t != -1) {
+      if (t != -1 && t > EPSILON) {
         if (min_t == -1) {
           min_t = t;
         } else {

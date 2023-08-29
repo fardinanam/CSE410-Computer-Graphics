@@ -41,7 +41,8 @@ void reshapeListener(GLsizei width, GLsizei height) {
   // Set the aspect ratio of the clipping area to match the viewport
   glMatrixMode(GL_PROJECTION); // To operate on the Projection matrix
   glLoadIdentity();            // Reset the projection matrix
-  gluPerspective(45.0f, aspect, 0.1f, 100.0f);
+  gluPerspective(camera.getFovY(), camera.getAspectRatio(), camera.getNearZ(),
+    camera.getFarZ());
 }
 
 void keyboardListener(unsigned char key, int x, int y) {
