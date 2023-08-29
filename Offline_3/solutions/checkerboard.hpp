@@ -44,7 +44,7 @@ public:
   }
 
   Vector normal(const Vector p) {
-    return {0, 1, 0};
+    return Vector(0, 1, 0);
   }
 
   Color getColor() {

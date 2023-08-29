@@ -4,12 +4,7 @@
 
 #define EPSILON 0.0001
 
-struct normalLight {
-  Vector position;
-  double fallOff;
-};
-
-struct spotLight {
+struct Light {
   Vector position;
   Vector lookAt;
   double fallOff;
@@ -18,6 +13,14 @@ struct spotLight {
 
 struct Color {
   double r, g, b;
+
+  Color operator+(const Color &c) const {
+    return {r + c.r, g + c.g, b + c.b};
+  }
+
+  Color operator*(const double& d) const {
+    return {r * d, g * d, b * d};
+  }
 };
 
 #endif

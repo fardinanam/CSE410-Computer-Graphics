@@ -62,6 +62,10 @@ public:
     return getColor();
   }
 
+  Vector centroid() {
+    return (lowerLeft + lowerRight + upperLeft + upperRight) / 4;
+  }
+
   void draw() {
     glColor3f(getColor().r, getColor().g, getColor().b);
     glPushMatrix();

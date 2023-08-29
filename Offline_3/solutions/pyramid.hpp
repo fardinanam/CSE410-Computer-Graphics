@@ -27,15 +27,39 @@ public:
     Vector top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
 
     triangles[0] = Triangle(bottomLowerLeft, bottomLowerRight, top, color, ambient, diffuse, reflection, specular, shininess);
-    triangles[1] = Triangle(bottomLowerLeft, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
-    triangles[2] = Triangle(bottomUpperLeft, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[1] = Triangle(bottomUpperLeft, bottomLowerLeft, top, color, ambient, diffuse, reflection, specular, shininess);
+    triangles[2] = Triangle(bottomUpperRight, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[3] = Triangle(bottomLowerRight, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
-    base = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    base = Quadrilateral(bottomLowerRight, bottomLowerLeft, bottomUpperLeft, bottomUpperRight, color, ambient, diffuse, reflection, specular, shininess);
   }
 
-  // // TODO: review before use
   Vector normal(const Vector p) {
-    return Vector();
+    // return the normal of the closest triangle to p
+    double min_dist = -1;
+    Vector min_normal;
+
+    for (int i = 0; i < 4; i++) {
+      Vector normal = triangles[i].normal(p);
+      double dist = (p - ((Triangle)triangles[i]).centroid()).dot(normal);
+      if (dist > EPSILON) {
+        if (min_dist == -1 || dist < min_dist) {
+          min_dist = dist;
+          min_normal = normal;
+        }
+      }
+    }
+
+    Vector normal = base.normal(p);
+    double dist = (p - ((Quadrilateral)base).centroid()).dot(normal);
+
+    if (dist > EPSILON) {
+      if (min_dist == -1 || dist < min_dist) {
+        min_dist = dist;
+        min_normal = normal;
+      }
+    }
+
+    return min_normal;
   }
 
   Color getColor(Vector p) {

@@ -66,8 +66,8 @@ void keyboardListener(unsigned char key, int x, int y) {
       camera.moveDown(cameraMoveAmount);
       break;
     case '0':
-      camera.capture(parser.getObjects(), parser.getNormalLights()
-        , parser.getSpotLights(), parser.getViewDescription().levelOfRecursion);
+      camera.capture(parser.getObjects(), parser.getLights()
+        , parser.getViewDescription().levelOfRecursion);
       break;
     default:
       return;
@@ -181,7 +181,7 @@ void display() {
 
   parser.getCheckerboard().draw(camera.getPosition());
 
-  vector<normalLight> normalLights = parser.getNormalLights();
+  vector<Light> normalLights = parser.getLights();
 
   for (int i = 0; i < normalLights.size(); i++) {
     // cout << "Normal light " << i << ": " << normalLights[i].position.x << " " << normalLights[i].position.y << " " << normalLights[i].position.z << endl;

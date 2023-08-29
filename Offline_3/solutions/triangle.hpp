@@ -39,6 +39,10 @@ public:
     return getColor();
   }
 
+  Vector centroid() {
+    return (p1 + p2 + p3) / 3;
+  }
+
   double intersect_t(const Vector p, const Vector d) {
     // Barycentric coordinates
     Matrix A = Matrix(3, 3);

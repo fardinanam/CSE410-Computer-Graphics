@@ -22,8 +22,7 @@ private:
   
   void setUpDir();
   Vector pixelToVect(int x, int y);
-  Color trace(const std::vector<Object *> &objects, const std::vector<normalLight> &normalLights,
-    const std::vector<spotLight> &spotLights, const Vector p, const Vector d, const int levelOfRecursion);
+  Color trace(const std::vector<Object *> &objects, const std::vector<Light> &lights, const Vector p, const Vector d, const int levelOfRecursion);
 
 public:
   Camera();
@@ -55,8 +54,8 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
-  void capture(const std::vector<Object *> &objects, const std::vector<normalLight> &normalLights
-    , const std::vector<spotLight> &spotLights, int levelOfRecursion);
+  void capture(const std::vector<Object *> &objects, const std::vector<Light> &lights
+    , int levelOfRecursion);
 
   friend std::ostream &operator<<(std::ostream &out, const Camera &c);
 };
@@ -214,8 +213,13 @@ Vector Camera::pixelToVect(int pxX, int pxY) {
   return p;
 }
 
-Color Camera::trace(const std::vector<Object*>& objects, const std::vector<normalLight>& normalLights,
-    const std::vector<spotLight>& spotLights, Vector p, Vector d, const int levelOfRecursion) {
+Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light>& lights,
+    Vector p, Vector d, const int levelOfRecursion) {
+
+  if (levelOfRecursion == 0) {
+    return {0, 0, 0};
+  }
+
   double min_t = -1;
   Object* closestObject = nullptr;
   for (int i = 0; i < objects.size(); i++) {
@@ -241,22 +245,26 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
 
   Vector intersectionPoint = p + d * min_t;
   Vector normal = closestObject->normal(intersectionPoint);
-  // for each light source, check 
-  // if the source illuminates the intersection point
-  // TODO: check if the light source is blocked by another object
-  // see provided materials for the formula
+  
   double lambert = 0;
   double phong = 0;
+  Color reflectedColor = {0, 0, 0};
 
-  for (normalLight s : normalLights) {
+  for (Light s : lights) {
     Vector ps = s.position - intersectionPoint;
     Vector toSource = ps.normalize();
+
+    if (s.cutOffAngle != 360) {
+      Vector lightDir = (s.lookAt - s.position).normalize();
+      double angle = acos(lightDir.dot(toSource * -1)) * 180 / M_PI;
+      if (angle > s.cutOffAngle) continue;
+    }
+    
     double distance = ps.length();
 
     // check if the light source is blocked by another object
     bool blocked = false;
     for (Object *o : objects) {
-      // if (o == closestObject) continue;
       double t = o->intersect_t(intersectionPoint, toSource);
       if (t != -1 && t > EPSILON && t < distance) {
         blocked = true;
@@ -267,24 +275,35 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<norma
     if (blocked) continue;
 
     Vector normal = closestObject->normal(intersectionPoint);
+    // reverse the normal if it is facing away from the incident ray
+    if (normal.dot(d) > 0) {
+      normal = normal * -1;
+    }
+
     double scalingFactor = exp(-distance * distance * s.fallOff);
-    lambert += toSource.dot(normal); // * scalingFactor;
-  } 
+    lambert += toSource.dot(normal) * scalingFactor;
+
+    Vector reflected = d + normal * 2;
+    reflected = reflected.normalize();
+  
+    phong += pow(reflected.dot(toSource), closestObject->getShininess()) * scalingFactor;
+
+    Vector intersectionPointWithEpsilon = intersectionPoint + normal * EPSILON;
+    reflectedColor = trace(objects, lights, intersectionPointWithEpsilon
+      , reflected, levelOfRecursion - 1);
+  }
 
   Color color = closestObject->getColor(intersectionPoint);
-  double diffuse = closestObject->getDiffuse();
-  double ambient = closestObject->getAmbient();
-  color = {
-    color.r * lambert * diffuse + color.r * ambient,
-    color.g * lambert * diffuse + color.g * ambient,
-    color.b * lambert * diffuse + color.b * ambient
-  };
+  Color diffuse = color * closestObject->getDiffuse() * lambert;
+  Color specular = color * closestObject->getSpecular() * phong;
+  Color ambient = color * closestObject->getAmbient();
+  Color reflected = reflectedColor * closestObject->getReflection();
 
-  return color;
+  return ambient + diffuse + specular + reflected;
 }
 
-void Camera::capture(const std::vector<Object*> &objects, const std::vector<normalLight>& normalLights
-    , const std::vector<spotLight>& spotLights, int levelOfRecursion) {
+void Camera::capture(const std::vector<Object*> &objects, const std::vector<Light>& lights
+    , int levelOfRecursion) {
   std::cout << "Capturing image...\n" << std::endl;
   
   double fovX = fovY * aspectRatio;
@@ -302,7 +321,7 @@ void Camera::capture(const std::vector<Object*> &objects, const std::vector<norm
       Vector d = p - position;
       d = d.normalize();
 
-      Color color = trace(objects, normalLights, spotLights, p, d, levelOfRecursion);
+      Color color = trace(objects, lights, p, d, levelOfRecursion);
       image.set_pixel(j, i, color.r * 255, color.g * 255, color.b * 255);
 
       int completion = (i * pixelsX + j) * 100 / totalPixels;
@@ -322,9 +341,9 @@ void Camera::capture(const std::vector<Object*> &objects, const std::vector<norm
 
 std::ostream &operator<<(std::ostream &out, const Camera &c) {
   out << "Camera: " << std::endl;
-  out << "  Position: " << c.position << std::endl;
-  out << "  LookAtPos: " << c.lookAtPos << std::endl;
-  out << "  UpDir: " << c.upDir << std::endl;
+  out << " Position: " << c.position << std::endl;
+  out << " LookAtPos: " << c.lookAtPos << std::endl;
+  out << " UpDir: " << c.upDir << std::endl;
   out << " Near: " << c.nearZ << std::endl;
   out << " Far: " << c.farZ << std::endl;
   out << " FovY: " << c.fovY << std::endl;

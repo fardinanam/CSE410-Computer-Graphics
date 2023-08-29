@@ -30,8 +30,7 @@ private:
   std::vector<Object*> objects;
   Checkerboard checkerboard;
   description viewDescription;
-  std::vector<normalLight> normalLights;
-  std::vector<spotLight> spotLights;
+  std::vector<Light> lights;
   std::string descriptionFileName;
 
   void pushCheckerBoard() {
@@ -194,12 +193,19 @@ public:
           while (getline(descriptionFile, line) && line.empty());
 
           ss = std::stringstream(line);
-          ss >> position.x >> position.y >> position.z >> fallOff;
+          ss >> position.x >> position.y >> position.z;
+          
+          getline(descriptionFile, line);
+          ss = std::stringstream(line);
+          ss >> fallOff;
 
-          normalLight light;
+          Light light;
           light.position = position;
           light.fallOff = fallOff;
-          normalLights.push_back(light);
+          light.cutOffAngle = 360;
+          lights.push_back(light);
+
+          std::cout << "Normal light: " << light.position << " " << light.fallOff << " " << light.cutOffAngle << " " << light.lookAt << std::endl;
         }
       } else if (lineNum == 8) {
         int numSpotLights;
@@ -212,22 +218,25 @@ public:
           while (getline(descriptionFile, line) && line.empty());
 
           ss = std::stringstream(line);
-          ss >> position.x >> position.y >> position.z >> fallOff;
+          ss >> position.x >> position.y >> position.z;
+          
+          getline(descriptionFile, line);
+          ss = std::stringstream(line);
+          ss >> fallOff;
 
           getline(descriptionFile, line);
           ss = std::stringstream(line);
-          ss >> lookAt.x >> lookAt.y >> lookAt.z;
+          ss >> lookAt.x >> lookAt.y >> lookAt.z >> cutOffAngle;
 
-          getline(descriptionFile, line);
-          ss = std::stringstream(line);
-          ss >> cutOffAngle;
-
-          spotLight light;
+          Light light;
           light.position = position;
           light.lookAt = lookAt;
           light.fallOff = fallOff;
           light.cutOffAngle = cutOffAngle;
-          spotLights.push_back(light);
+          lights.push_back(light);
+
+          std::cout << "Spot light: " << light.position << " " << fallOff <<
+            " " << light.cutOffAngle << " " << light.lookAt << std::endl;
         }
       } else {
         break;
@@ -252,12 +261,8 @@ public:
     return checkerboard;
   }
 
-  std::vector<normalLight> getNormalLights() {
-    return normalLights;
-  }
-
-  std::vector<spotLight> getSpotLights() {
-    return spotLights;
+  std::vector<Light> getLights() {
+    return lights;
   }
 
   ~DescriptionParser() {

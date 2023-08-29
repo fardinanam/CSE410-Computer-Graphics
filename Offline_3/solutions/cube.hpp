@@ -25,11 +25,11 @@ public:
     Vector topUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
     Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
 
-    faces[0] = Quadrilateral(bottomLowerLeft, bottomLowerRight, bottomUpperRight, bottomUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[0] = Quadrilateral(bottomLowerLeft, bottomUpperLeft, bottomUpperRight, bottomLowerRight, color, ambient, diffuse, reflection, specular, shininess);
     faces[1] = Quadrilateral(bottomLowerLeft, bottomLowerRight, topLowerRight, topLowerLeft, color, ambient, diffuse, reflection, specular, shininess);
-    faces[2] = Quadrilateral(bottomLowerLeft, bottomUpperLeft, topUpperLeft, topLowerLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[2] = Quadrilateral(bottomUpperLeft, bottomLowerLeft, topLowerLeft, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
     faces[3] = Quadrilateral(bottomLowerRight, bottomUpperRight, topUpperRight, topLowerRight, color, ambient, diffuse, reflection, specular, shininess);
-    faces[4] = Quadrilateral(bottomUpperLeft, bottomUpperRight, topUpperRight, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[4] = Quadrilateral(bottomUpperRight, bottomUpperLeft, topUpperLeft, topUpperRight, color, ambient, diffuse, reflection, specular, shininess);
     faces[5] = Quadrilateral(topLowerLeft, topLowerRight, topUpperRight, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
   }
 
@@ -40,7 +40,7 @@ public:
 
     for (int i = 0; i < 6; i++) {
       double t = faces[i].intersect_t(p, d);
-      if (t != -1 && t > EPSILON) {
+      if (t > EPSILON) {
         if (min_t == -1) {
           min_t = t;
         } else {
@@ -54,26 +54,21 @@ public:
 
   // implement this function properly
   Vector normal(Vector p) {
-    Vector n = {0, 0, 0};
-    if (p.x == bottomLowerLeft.x) {
-      n.x = -1;
+    // call normal on all the faces
+    // return the normal of the face that is closest to p
+    double min_dist = -1;
+    Vector min_normal;
+
+    for (int i = 0; i < 6; i++) {
+      Vector n = faces[i].normal(p);
+      double dist = (p - ((Quadrilateral)faces[i]).centroid()).length();
+      if (min_dist == -1 || dist < min_dist) {
+        min_dist = dist;
+        min_normal = n;
+      }
     }
-    if (p.x == bottomLowerLeft.x + side) {
-      n.x = 1;
-    }
-    if (p.y == bottomLowerLeft.y) {
-      n.y = -1;
-    }
-    if (p.y == bottomLowerLeft.y + side) {
-      n.y = 1;
-    }
-    if (p.z == bottomLowerLeft.z) {
-      n.z = -1;
-    }
-    if (p.z == bottomLowerLeft.z + side) {
-      n.z = 1;
-    }
-    return n;
+
+    return min_normal;
   }
 
   Color getColor() {
