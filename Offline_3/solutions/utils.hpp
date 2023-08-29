@@ -2,7 +2,7 @@
 #define UTILS_HPP
 #include "vector.hpp"
 
-#define EPSILON 0.0001
+#define EPSILON 1e-5
 
 struct Light {
   Vector position;

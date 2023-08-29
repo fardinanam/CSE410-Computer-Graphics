@@ -247,12 +247,14 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   Vector normal = closestObject->normal(intersectionPoint);
 
   if (normal.dot(d) > 0) {
-    normal = normal * -1;
+    normal = -1 * normal;
   }
   
   double lambert = 0;
   double phong = 0;
-  Color reflectedColor = {0, 0, 0};
+
+  Vector reflectedRay = d + normal * 2;
+  reflectedRay = reflectedRay.normalize();
 
   for (Light s : lights) {
     Vector ps = s.position - intersectionPoint;
@@ -284,15 +286,11 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
     double scalingFactor = exp(-distance * distance * s.fallOff);
     lambert += toSource.dot(normal) * scalingFactor;
 
-    Vector reflected = d + normal * 2;
-    reflected = reflected.normalize();
-  
-    phong += pow(reflected.dot(toSource), closestObject->getShininess()) * scalingFactor;
-
-    // Vector intersectionPointWithEpsilon = intersectionPoint + normal * EPSILON;
-    // reflectedColor = trace(objects, lights, intersectionPointWithEpsilon
-    //   , reflected, levelOfRecursion - 1);
+    phong += pow(reflectedRay.dot(toSource), closestObject->getShininess()) * scalingFactor;
   }
+  
+  Vector intersectionPointWithEpsilon = intersectionPoint + normal * EPSILON;
+  Color reflectedColor = trace(objects, lights, intersectionPointWithEpsilon, reflectedRay, levelOfRecursion - 1);
 
   Color color = closestObject->getColor(intersectionPoint);
   Color diffuse = color * closestObject->getDiffuse() * lambert;

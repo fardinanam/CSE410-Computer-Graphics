@@ -24,7 +24,7 @@ public:
 
     double delta = b * b - c;
 
-    if (delta < 0) {
+    if (delta < EPSILON) {
       return -1;
     }
 
