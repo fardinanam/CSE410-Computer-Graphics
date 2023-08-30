@@ -4,33 +4,30 @@
 #include <cmath>
 #include <GL/glut.h>
 #include "object.hpp"
-#include "quadrilateral.hpp"
+#include "square.hpp"
 
 class Cube : public Object {
 private:
   Vector bottomLowerLeft;
   double side;  
-  Quadrilateral faces[6];
+  Square faces[6];
 public:
   Cube(Vector bottomLowerLeft, double side, Color color, double ambient, double diffuse, double reflection, double specular, double shininess) 
     : Object(color, ambient, diffuse, reflection, specular, shininess) {
     this->bottomLowerLeft = bottomLowerLeft;
     this->side = side;
 
-    Vector bottomLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z};
-    Vector bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - side};
-    Vector bottomUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z - side};
-    Vector topLowerLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z};
-    Vector topLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z};
-    Vector topUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
-    Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
+     Vector bottomLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z};
+     Vector topLowerLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z};
+     Vector topLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z};
+     Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
 
-    faces[0] = Quadrilateral(bottomLowerLeft, bottomUpperLeft, bottomUpperRight, bottomLowerRight, color, ambient, diffuse, reflection, specular, shininess);
-    faces[1] = Quadrilateral(bottomLowerLeft, bottomLowerRight, topLowerRight, topLowerLeft, color, ambient, diffuse, reflection, specular, shininess);
-    faces[2] = Quadrilateral(bottomUpperLeft, bottomLowerLeft, topLowerLeft, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
-    faces[3] = Quadrilateral(bottomLowerRight, bottomUpperRight, topUpperRight, topLowerRight, color, ambient, diffuse, reflection, specular, shininess);
-    faces[4] = Quadrilateral(bottomUpperRight, bottomUpperLeft, topUpperLeft, topUpperRight, color, ambient, diffuse, reflection, specular, shininess);
-    faces[5] = Quadrilateral(topLowerLeft, topLowerRight, topUpperRight, topUpperLeft, color, ambient, diffuse, reflection, specular, shininess);
+    faces[0] = Square(topLowerRight, Vector(0, 0, 1), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[1] = Square(topLowerRight, Vector(1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[2] = Square(topLowerRight, Vector(0, 1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[3] = Square(topLowerLeft, Vector(-1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[4] = Square(topUpperRight, Vector(0, 0, -1), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[5] = Square(bottomLowerRight, Vector(0, -1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
   }
 
   double intersect_t(Vector p, Vector d) {
@@ -61,7 +58,7 @@ public:
 
     for (int i = 0; i < 6; i++) {
       Vector n = faces[i].normal(p);
-      double dist = (p - ((Quadrilateral)faces[i]).centroid()).length();
+      double dist = (p - ((Square)faces[i]).centroid()).length();
       if (min_dist == -1 || dist < min_dist) {
         min_dist = dist;
         min_normal = n;

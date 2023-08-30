@@ -16,6 +16,9 @@ using namespace std;
 
 // config
 DescriptionParser parser("description.txt");
+Vector defaultEye(0, 40, -120);
+Vector defaultLookAtPos(0, 30, 0);
+Vector defaultUpDir(0, 1, 0);
 
 // Global variables
 Camera camera;
@@ -102,6 +105,9 @@ void specialKeyListener(int key, int x, int y)
       break;
     case GLUT_KEY_PAGE_DOWN:
       camera.moveDown(cameraMoveAmount);
+      break;
+    case GLUT_KEY_HOME:
+      camera.setCamera(defaultEye, defaultLookAtPos, defaultUpDir);
       break;
     default:
       return;
@@ -204,12 +210,7 @@ void display() {
 
 
 int main(int argc, char **argv) {
-  Vector eye = {0, 100, 70};
-  Vector lookAtPos(0, 0, 0);
-  Vector upDir(0, 1, 0);
-
-  camera = Camera(eye, lookAtPos, upDir);
-
+  camera = Camera(defaultEye, defaultLookAtPos, defaultUpDir);
 
   parser.parse();
   parser.printDescription();

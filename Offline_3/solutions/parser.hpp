@@ -204,8 +204,6 @@ public:
           light.fallOff = fallOff;
           light.cutOffAngle = 360;
           lights.push_back(light);
-
-          std::cout << "Normal light: " << light.position << " " << light.fallOff << " " << light.cutOffAngle << " " << light.lookAt << std::endl;
         }
       } else if (lineNum == 8) {
         int numSpotLights;

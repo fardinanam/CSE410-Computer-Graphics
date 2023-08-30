@@ -19,6 +19,7 @@ private:
   double fovY;
   double aspectRatio;
   int pixelsY;
+  int maxLevelOfRecursion;
   
   void setUpDir();
   Vector pixelToVect(int x, int y);
@@ -38,6 +39,7 @@ public:
   double getFovY();
   int getPixelsY();
 
+  void setCamera(Vector position, Vector lookAtPos, Vector upDir);
   void setNearZ(double z);
   void setFarZ(double z);
   void setAspectRatio(double r);
@@ -66,9 +68,14 @@ Camera::Camera() {
   this->position = Vector(0, 0, 0);
   this->lookAtPos = Vector(0, 0, 1);
   this->upDir = Vector(0, 1, 0);
+  this->maxLevelOfRecursion = 0;
 }
 
 Camera::Camera(Vector position, Vector lookAtPos, Vector upDir) {
+  setCamera(position, lookAtPos, upDir);
+}
+
+void Camera::setCamera(Vector position, Vector lookAtPos, Vector upDir) {
   this->position = position;
   this->lookAtPos = lookAtPos;
 
@@ -228,7 +235,6 @@ Vector Camera::pixelToVect(int pxX, int pxY) {
   return p;
 }
 
-Color sky = {0, 0, 0};
 Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light>& lights,
     Vector p, Vector d, const int levelOfRecursion) {
 
@@ -249,17 +255,17 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   }
 
   if (closestObject == nullptr) {
-    return sky;
+    return {0, 0, 0};
   }
 
   // check if t is beyond the far plane
-  // if (levelOfRecursion == 1) {
-  //   double cosTheta = d.dot(getLookDir());
-  //   double dist = farZ / cosTheta;
-  //   if (min_t > dist) {
-  //     return sky;
-  //   }
-  // }
+  if (levelOfRecursion == maxLevelOfRecursion) {
+    double cosTheta = d.dot(getLookDir());
+    double dist = farZ / cosTheta;
+    if (min_t > dist) {
+      return {0, 0, 0};
+    }
+  }
 
   Vector intersectionPoint = p + d * min_t;
   Vector normal = closestObject->normal(intersectionPoint);
@@ -273,16 +279,6 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   
   Vector reflectedRay = d - 2 * (normal.dot(d)) * normal;
   reflectedRay = reflectedRay.normalize();
-  // return {(reflectedRay.x + 1) / 2, (reflectedRay.y + 1) / 2, (reflectedRay.z + 1) / 2};
-  // Vector test(0, -1, 0);
-  // if (reflectedRay.dot(test) > 0) {
-  //   reflectedRay = test; 
-  // }
-
-  // test = Vector(0, 1, 0);
-  // if (reflectedRay.dot(test) > 0) {
-  //   reflectedRay = test;
-  // }
 
   for (Light s : lights) {
     Vector ps = s.position - intersectionPoint;
@@ -327,8 +323,6 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   Color reflected = reflectedColor * closestObject->getReflection();
 
   return ambient + diffuse + specular + reflected;
-  // return {reflectedRay.x, reflectedRay.y, reflectedRay.z};
-  // return {(normal.x+1)/2, (normal.y+1)/2, (normal.z+1)/2};
 }
 
 void Camera::capture(const std::vector<Object*> &objects, const std::vector<Light>& lights
@@ -350,14 +344,13 @@ void Camera::capture(const std::vector<Object*> &objects, const std::vector<Ligh
       Vector d = p - position;
       d = d.normalize();
 
+      maxLevelOfRecursion = levelOfRecursion;
       Color color = trace(objects, lights, p, d, levelOfRecursion);
       image.set_pixel(j, i, color.r * 255, color.g * 255, color.b * 255);
 
       int completion = (i * pixelsX + j) * 100 / totalPixels;
-      if (completion % 10 == 0){
-        std::cout << "\033[F";
-        std::cout << "Progress: " << completion << "%" << std::endl;
-      }
+      std::cout << "\033[F";
+      std::cout << "Progress: " << completion << "%" << std::endl;
     }
   }
 

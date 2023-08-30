@@ -5,13 +5,13 @@
 #include <GL/glut.h>
 #include "object.hpp"
 #include "triangle.hpp"
-#include "quadrilateral.hpp"
+#include "square.hpp"
 
 class Pyramid : public Object {
 private:
   Vector bottomLowerLeft;
   Triangle triangles[4];
-  Quadrilateral base;
+  Square base;
   double width, height;
 
 public:
@@ -30,7 +30,7 @@ public:
     triangles[1] = Triangle(bottomUpperLeft, bottomLowerLeft, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[2] = Triangle(bottomUpperRight, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[3] = Triangle(bottomLowerRight, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
-    base = Quadrilateral(bottomLowerRight, bottomLowerLeft, bottomUpperLeft, bottomUpperRight, color, ambient, diffuse, reflection, specular, shininess);
+    base = Square(bottomLowerRight, Vector(0, -1, 0), width, color, ambient, diffuse, reflection, specular, shininess);
   }
 
   Vector normal(const Vector p) {
@@ -50,7 +50,7 @@ public:
     }
 
     Vector normal = base.normal(p);
-    double dist = (p - ((Quadrilateral)base).centroid()).dot(normal);
+    double dist = (p - ((Square)base).centroid()).dot(normal);
 
     if (dist > -EPSILON) {
       if (min_dist == -1 || dist < min_dist) {

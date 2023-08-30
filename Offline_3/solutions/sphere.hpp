@@ -18,32 +18,58 @@ public:
   }
 
   double intersect_t(const Vector p, const Vector d) {
-    Vector distFromCenter = p - center;
-    double b = distFromCenter.dot(d);
-    double c = distFromCenter.dot(distFromCenter) - radius * radius;
+    // Geometric calculation
+    Vector centerToP = p - center;
 
-    double delta = b * b - c;
+    double tp = -centerToP.dot(d);
 
-    if (delta < 0) {
+    if (tp < EPSILON) {
       return -1;
     }
 
-    double t1 = -b - sqrt(delta);
-    double t2 = -b + sqrt(delta);
+    double squaredPerpendicularDistanceToRay = centerToP.dot(centerToP) - tp * tp;
 
-    if (t1 < EPSILON && t2 < EPSILON) {
+    if (squaredPerpendicularDistanceToRay > radius * radius) {
       return -1;
     }
 
-    if (t1 < EPSILON) {
-      return t2;
-    }
+    double t = sqrt(radius * radius - squaredPerpendicularDistanceToRay);
 
-    if (t2 < EPSILON) {
-      return t1;
+    if (tp - t > -EPSILON) {
+      return tp - t;
+    } else if (tp + t > -EPSILON) {
+      return tp + t;
+    } else {
+      return -1;
     }
+    
+    // vector calculation
+    // Vector distFromCenter = p - center;
+    // double b = distFromCenter.dot(d);
+    // double c = distFromCenter.dot(distFromCenter) - radius * radius;
 
-    return t1 < t2 ? t1 : t2;
+    // double delta = b * b - c;
+
+    // if (delta < 0) {
+    //   return -1;
+    // }
+
+    // double t1 = -b - sqrt(delta);
+    // double t2 = -b + sqrt(delta);
+
+    // if (t1 < EPSILON && t2 < EPSILON) {
+    //   return -1;
+    // }
+
+    // if (t1 < EPSILON) {
+    //   return t2;
+    // }
+
+    // if (t2 < EPSILON) {
+    //   return t1;
+    // }
+
+    // return t1 < t2 ? t1 : t2;
   }
 
   Vector normal(const Vector p) {
