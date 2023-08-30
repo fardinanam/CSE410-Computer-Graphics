@@ -40,14 +40,14 @@ public:
 
     for (int i = 0; i < 6; i++) {
       double t = faces[i].intersect_t(p, d);
-      if (t > EPSILON) {
+      if (t > -EPSILON) {
         if (min_t == -1) {
           min_t = t;
         } else {
           min_t = std::min(min_t, t);
         }
       }
-    }
+    }    
 
     return min_t;
   }

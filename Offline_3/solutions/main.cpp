@@ -65,6 +65,12 @@ void keyboardListener(unsigned char key, int x, int y) {
     case '2':
       camera.moveDown(cameraMoveAmount);
       break;
+    case '3':
+      camera.tiltLeft(cameraRotationAmount);
+      break;
+    case '4':
+      camera.tiltRight(cameraRotationAmount);
+      break;
     case '0':
       camera.capture(parser.getObjects(), parser.getLights()
         , parser.getViewDescription().levelOfRecursion);
@@ -198,7 +204,7 @@ void display() {
 
 
 int main(int argc, char **argv) {
-  Vector eye = {0, 10, 100};
+  Vector eye = {0, 100, 70};
   Vector lookAtPos(0, 0, 0);
   Vector upDir(0, 1, 0);
 

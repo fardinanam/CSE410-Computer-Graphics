@@ -41,7 +41,7 @@ public:
     for (int i = 0; i < 4; i++) {
       Vector normal = triangles[i].normal(p);
       double dist = (p - ((Triangle)triangles[i]).centroid()).dot(normal);
-      if (dist > EPSILON) {
+      if (dist > -EPSILON) {
         if (min_dist == -1 || dist < min_dist) {
           min_dist = dist;
           min_normal = normal;
@@ -52,7 +52,7 @@ public:
     Vector normal = base.normal(p);
     double dist = (p - ((Quadrilateral)base).centroid()).dot(normal);
 
-    if (dist > EPSILON) {
+    if (dist > -EPSILON) {
       if (min_dist == -1 || dist < min_dist) {
         min_dist = dist;
         min_normal = normal;

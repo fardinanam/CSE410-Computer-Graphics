@@ -54,6 +54,8 @@ public:
   void lookRight(double angle);
   void lookUp(double angle);
   void lookDown(double angle);
+  void tiltRight(double angle);
+  void tiltLeft(double angle);
   void capture(const std::vector<Object *> &objects, const std::vector<Light> &lights
     , int levelOfRecursion);
 
@@ -69,8 +71,10 @@ Camera::Camera() {
 Camera::Camera(Vector position, Vector lookAtPos, Vector upDir) {
   this->position = position;
   this->lookAtPos = lookAtPos;
-  this->upDir = upDir.normalize();
-  setUpDir();
+
+  Vector lookDir = (lookAtPos - position);
+  Vector rightDir = lookDir.cross(upDir);
+  this->upDir = rightDir.cross(lookDir).normalize();
 }
 
 void Camera::setUpDir() {
@@ -187,10 +191,21 @@ void Camera::lookUp(double angle) {
   Vector lookAtDir = getLookDir();
   Vector newLookAtDir = lookAtDir.rotate(getRightDir(), angle);
   this->lookAtPos = this->position + newLookAtDir;
+  setUpDir();
 }
 
 void Camera::lookDown(double angle) {
   lookUp(-angle);
+}
+
+void Camera::tiltRight(double angle) {
+  Vector upDir = getUpDir();
+  Vector newUpDir = upDir.rotate(getLookDir(), angle);
+  this->upDir = newUpDir;
+}
+
+void Camera::tiltLeft(double angle) {
+  tiltRight(-angle);
 }
 
 Vector Camera::pixelToVect(int pxX, int pxY) {
@@ -213,6 +228,7 @@ Vector Camera::pixelToVect(int pxX, int pxY) {
   return p;
 }
 
+Color sky = {0, 0, 0};
 Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light>& lights,
     Vector p, Vector d, const int levelOfRecursion) {
 
@@ -233,15 +249,17 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   }
 
   if (closestObject == nullptr) {
-    return {0, 0, 0};
+    return sky;
   }
 
   // check if t is beyond the far plane
-  double cosTheta = d.dot(getLookDir());
-  double dist = farZ / cosTheta;
-  if (min_t > dist) {
-    return {0, 0, 0};
-  }
+  // if (levelOfRecursion == 1) {
+  //   double cosTheta = d.dot(getLookDir());
+  //   double dist = farZ / cosTheta;
+  //   if (min_t > dist) {
+  //     return sky;
+  //   }
+  // }
 
   Vector intersectionPoint = p + d * min_t;
   Vector normal = closestObject->normal(intersectionPoint);
@@ -252,9 +270,19 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   
   double lambert = 0;
   double phong = 0;
-
-  Vector reflectedRay = d + normal * 2;
+  
+  Vector reflectedRay = d - 2 * (normal.dot(d)) * normal;
   reflectedRay = reflectedRay.normalize();
+  // return {(reflectedRay.x + 1) / 2, (reflectedRay.y + 1) / 2, (reflectedRay.z + 1) / 2};
+  // Vector test(0, -1, 0);
+  // if (reflectedRay.dot(test) > 0) {
+  //   reflectedRay = test; 
+  // }
+
+  // test = Vector(0, 1, 0);
+  // if (reflectedRay.dot(test) > 0) {
+  //   reflectedRay = test;
+  // }
 
   for (Light s : lights) {
     Vector ps = s.position - intersectionPoint;
@@ -299,6 +327,8 @@ Color Camera::trace(const std::vector<Object*>& objects, const std::vector<Light
   Color reflected = reflectedColor * closestObject->getReflection();
 
   return ambient + diffuse + specular + reflected;
+  // return {reflectedRay.x, reflectedRay.y, reflectedRay.z};
+  // return {(normal.x+1)/2, (normal.y+1)/2, (normal.z+1)/2};
 }
 
 void Camera::capture(const std::vector<Object*> &objects, const std::vector<Light>& lights

@@ -32,15 +32,13 @@ public:
   }
 
   double intersect_t(const Vector p, const Vector d) {
-    Vector lowerLeft(startX, 0, startZ);
-    Vector lowerRight(startX + n * width, 0, startZ);
-    Vector upperLeft(startX, 0, startZ - n * width);
-    Vector upperRight(startX + n * width, 0, startZ - n * width);
+    double t = -p.y / d.y;
 
-    Quadrilateral quad = Quadrilateral(lowerLeft, lowerRight, upperRight, upperLeft, 
-      getColor(), getAmbient(), getDiffuse(), getReflection(), getSpecular(), getShininess());
-
-    return quad.intersect_t(p, d);
+    if (t < EPSILON) {
+      return -1;
+    }
+    
+    return t;
   }
 
   Vector normal(const Vector p) {

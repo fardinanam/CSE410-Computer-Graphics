@@ -124,13 +124,11 @@ Vector Vector::cross(const Vector& other) const {
 
 Vector Vector::rotate(const Vector& axis, double angle) const {
   // rodrigues rotation
-  double theta = angle * M_PI / 180.0;
-  double c = cos(theta);
-  double s = sin(theta);
-
-  Vector result = c * *this;
-  result = result + (s * axis.cross(*this));
-  result = result + ((1 - c) * axis.dot(*this) * axis);
+  Vector result;
+  Vector axis_norm = axis.normalize();
+  angle = angle * M_PI / 180;
+  result = cos(angle) * *this + axis_norm.cross(*this) 
+    * sin(angle) + axis_norm * axis_norm.dot(*this) * (1 - cos(angle));
 
   return result;
 }

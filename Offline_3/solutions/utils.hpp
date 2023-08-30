@@ -15,7 +15,10 @@ struct Color {
   double r, g, b;
 
   Color operator+(const Color &c) const {
-    return {r + c.r, g + c.g, b + c.b};
+    double r = std::min(1.0, this->r + c.r);
+    double g = std::min(1.0, this->g + c.g);
+    double b = std::min(1.0, this->b + c.b);
+    return {r, g, b};
   }
 
   Color operator*(const double& d) const {

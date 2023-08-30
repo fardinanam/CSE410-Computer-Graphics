@@ -105,7 +105,7 @@ public:
 
     double t = tMat.determinant() / detA;
 
-    if (beta > 0 && gamma > 0 && beta + gamma < 1 && t > 0) {
+    if (beta > -EPSILON && gamma > -EPSILON && beta + gamma < 1 && t > -EPSILON) {
       return t;
     } 
 
