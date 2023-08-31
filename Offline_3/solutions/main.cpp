@@ -16,9 +16,10 @@ using namespace std;
 
 // config
 DescriptionParser parser("description.txt");
-Vector defaultEye(0, 40, -120);
-Vector defaultLookAtPos(0, 30, 0);
-Vector defaultUpDir(0, 1, 0);
+const Vector defaultEye(0, -145, 40);
+const Vector defaultLookAtPos(0, 0, 40);
+const Vector defaultUpDir(0, 0, 1);
+bool isShowingAxes = true;
 
 // Global variables
 Camera camera;
@@ -51,33 +52,45 @@ void reshapeListener(GLsizei width, GLsizei height) {
 void keyboardListener(unsigned char key, int x, int y) {
   switch (key) {
     case 'a':
-      camera.moveLeft(cameraMoveAmount);
+      camera.lookLeft(cameraRotationAmount);
       break;
     case 'd':
-      camera.moveRight(cameraMoveAmount);
+      camera.lookRight(cameraRotationAmount);
       break;
     case 'w':
-      camera.moveForward(cameraMoveAmount);
+      camera.lookUp(cameraRotationAmount);
       break;
     case 's':
-      camera.moveBackward(cameraMoveAmount);
+      camera.lookDown(cameraRotationAmount);
       break;
-    case '1':
-      camera.moveUp(cameraMoveAmount);
-      break;
-    case '2':
-      camera.moveDown(cameraMoveAmount);
-      break;
-    case '3':
+    case 'q':
       camera.tiltLeft(cameraRotationAmount);
       break;
+    case 'e':
+      camera.tiltRight(cameraRotationAmount);
+      break;
+    case '1':
+      camera.lookLeft(cameraRotationAmount);
+      break;
+    case '2':
+      camera.lookRight(cameraRotationAmount);
+      break;
+    case '3':
+      camera.lookUp(cameraRotationAmount);
+      break;
     case '4':
+      camera.lookDown(cameraRotationAmount);
+      break;
+    case '5':
+      camera.tiltLeft(cameraRotationAmount);
+      break;
+    case '6':
       camera.tiltRight(cameraRotationAmount);
       break;
     case '0':
       camera.capture(parser.getObjects(), parser.getLights()
         , parser.getViewDescription().levelOfRecursion);
-      break;
+      break;    
     default:
       return;
   }
@@ -88,17 +101,17 @@ void specialKeyListener(int key, int x, int y)
 {
   switch (key) {
     case GLUT_KEY_UP:
-      camera.lookUp(cameraRotationAmount);
+      camera.moveForward(cameraRotationAmount);
       break;
     case GLUT_KEY_DOWN:
-      camera.lookDown(cameraRotationAmount);
+      camera.moveBackward(cameraRotationAmount);
       break;
 
     case GLUT_KEY_RIGHT:
-      camera.lookRight(cameraRotationAmount);
+      camera.moveRight(cameraRotationAmount);
       break;
     case GLUT_KEY_LEFT:
-      camera.lookLeft(cameraRotationAmount);
+      camera.moveLeft(cameraRotationAmount);
       break;
     case GLUT_KEY_PAGE_UP:
       camera.moveUp(cameraMoveAmount);
@@ -113,6 +126,13 @@ void specialKeyListener(int key, int x, int y)
       return;
   }
 
+  glutPostRedisplay(); // Post a paint request to activate display()
+}
+
+void mouseListener(int button, int state, int x, int y) {
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) { // Pause/resume
+    isShowingAxes = !isShowingAxes;
+  }
   glutPostRedisplay(); // Post a paint request to activate display()
 }
 
@@ -167,6 +187,32 @@ void drawInfiniteCheckerBoard(GLfloat widthOfEachCell) {
   }
 }
 
+void drawCone(Vector position, Vector direction, double cutOffAngle, GLfloat height, int slices, int stacks)
+{
+  direction = direction.normalize();
+  double theta = cutOffAngle * M_PI / 180;
+  // Draw the cone's triangles.
+  glPushMatrix();
+  for (int i = 0; i < stacks; i++) {
+    double currentHeight = i * height / stacks;
+    Vector center = position + direction * currentHeight;
+    double radius = currentHeight * tan(theta);
+    // draw circles at the center of each stack
+    // so that the cone looks smooth and facing towards the lookAt position
+    // circle is made of slices triangles
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(center.x, center.y, center.z);
+    for (int j = 0; j <= slices; j++) {
+      double angle = j * 2 * M_PI / slices;
+      double x = center.x + radius * cos(angle);
+      double y = center.y + radius * sin(angle);
+      glVertex3f(x, y, center.z);
+    }
+    glEnd();
+  }
+  glPopMatrix();
+}
+
 void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_PROJECTION);
@@ -185,7 +231,9 @@ void display() {
 
   glRotated(rotationAngle, 0, 1, 0);
 
-  drawAxes(1000.0);
+  if (isShowingAxes)
+    drawAxes(1000.0);
+  
   vector<Object*> objects = parser.getObjects();
   for (int i = 0; i < objects.size(); i++) {
     objects[i]->draw();
@@ -193,17 +241,23 @@ void display() {
 
   parser.getCheckerboard().draw(camera.getPosition());
 
-  vector<Light> normalLights = parser.getLights();
-
-  for (int i = 0; i < normalLights.size(); i++) {
-    // cout << "Normal light " << i << ": " << normalLights[i].position.x << " " << normalLights[i].position.y << " " << normalLights[i].position.z << endl;
+  vector<Light> lights = parser.getLights();
+  glColor3f(0.2, 0.2, 0.2);
+  for (Light light : lights) {
     glPushMatrix();
-    glTranslatef(normalLights[i].position.x, normalLights[i].position.y, normalLights[i].position.z);
-    glColor3f(0.5, 0.5, 0.5);
-    glutSolidSphere(1, 20, 20);
+    if (light.cutOffAngle != 360) {
+      Vector lookDir = (light.lookAt - light.position).normalize();
+      glColor3f(0.45, 0.45, .5);
+      drawCone(light.position, lookDir, light.cutOffAngle, 15, 100, 50);
+
+    } else {      
+    glTranslatef(light.position.x, light.position.y, light.position.z);
+      glutSolidSphere(3, 50, 50);
+    }
+    
     glPopMatrix();
   }
-
+  
   glutSwapBuffers();
 }
 
@@ -240,6 +294,7 @@ int main(int argc, char **argv) {
   glutReshapeFunc(reshapeListener);
   glutKeyboardFunc(keyboardListener);
   glutSpecialFunc(specialKeyListener);
+  glutMouseFunc(mouseListener);
   initGL();
   glutMainLoop();
   return 0;

@@ -9,14 +9,14 @@
 class Checkerboard : public Object {
 private:
   double width;
-  double startX, startZ;
+  double startX, startY;
   int n = 50;
 
-  Color getColor(int x, int z) {
-    if ((x + z) % (2 * (int)width) == 0) {
-      return {0, 0, 0};
-    } else {
+  Color getColor(int x, int y) {
+    if ((x + y) % (2 * (int)width) == 0) {
       return {1, 1, 1};
+    } else {
+      return {0, 0, 0};
     }
   }
 public:
@@ -28,11 +28,11 @@ public:
     : Object({0, 0, 0}, ambient, diffuse, reflection, 0, shininess) {
     this->width = width;
     startX = -n * width / 2;
-    startZ = n * width / 2;
+    startY = n * width / 2;
   }
 
   double intersect_t(const Vector p, const Vector d) {
-    double t = -p.y / d.y;
+    double t = -p.z / d.z;
 
     if (t < EPSILON) {
       return -1;
@@ -42,7 +42,7 @@ public:
   }
 
   Vector normal(const Vector p) {
-    return Vector(0, 1, 0);
+    return Vector(0, 0, 1);
   }
 
   Color getColor() {
@@ -56,9 +56,9 @@ public:
     // if the cell index is odd, return white
 
     int posX;
-    int posZ;
+    int posY;
     posX = (int)floor(p.x);
-    posZ = (int)floor(p.z);
+    posY = (int)floor(p.y);
 
     if (p.x > 0) {
       posX = posX - (posX % (int)width);
@@ -66,13 +66,13 @@ public:
       posX = posX - (posX % (int)width)  - (int)width; 
     }
 
-    if (p.z > 0) {
-      posZ = posZ - (posZ % (int)width);
+    if (p.y > 0) {
+      posY = posY - (posY % (int)width);
     } else {
-      posZ = posZ - (posZ % (int)width)  - (int)width;
+      posY = posY - (posY % (int)width)  - (int)width;
     }
 
-    return getColor(posX, posZ);
+    return getColor(posX, posY);
   }
   
   void draw() {}
@@ -84,25 +84,25 @@ public:
     // the checkerboard is made of width X width squares
     // the color of the squares alternate between black and white
     int posX = (int)position.x;
-    int posZ = (int)position.z;
+    int posY = (int)position.z;
 
     posX = posX - (posX % (int)width);
-    posZ = posZ - (posZ % (int)width);
+    posY = posY - (posY % (int)width);
 
     startX = posX - n * (int)width / 2;
-    startZ = posZ + n * (int)width / 2;
+    startY = posY + n * (int)width / 2;
 
     for (int i = 0; i < n; i++) {
       int x = startX + i * (int)width;
       for (int j = 0; j < n; j++) {
-        int z = startZ - j * (int)width;
-        Color color = getColor(x, z);
+        int y = startY - j * (int)width;
+        Color color = getColor(x, y);
         glColor3f(color.r, color.g, color.b);
         glBegin(GL_QUADS);
-        glVertex3f(x, 0, z);
-        glVertex3f(x + width, 0, z);
-        glVertex3f(x + width, 0, z + width);
-        glVertex3f(x, 0, z + width);
+        glVertex3f(x, y, 0);
+        glVertex3f(x + width, y, 0);
+        glVertex3f(x + width, y + width, 0);
+        glVertex3f(x, y + width, 0);
         glEnd();
       }
     }

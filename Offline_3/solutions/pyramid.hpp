@@ -21,16 +21,28 @@ public:
     this->width = width;
     this->height = height;
 
-    Vector bottomLowerRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z};
-    Vector bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - width};
-    Vector bottomUpperRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z - width};
-    Vector top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
+    // Vector bottomLowerRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z};
+    // Vector bottomUpperLeft = {bottomLowerLeft.x, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    // Vector bottomUpperRight = {bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z - width};
+    // Vector top = {bottomLowerLeft.x + width / 2, bottomLowerLeft.y + height, bottomLowerLeft.z - width / 2};
+
+    // triangles[0] = Triangle(bottomLowerLeft, bottomLowerRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    // triangles[1] = Triangle(bottomUpperLeft, bottomLowerLeft, top, color, ambient, diffuse, reflection, specular, shininess);
+    // triangles[2] = Triangle(bottomUpperRight, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
+    // triangles[3] = Triangle(bottomLowerRight, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
+    // base = Square(bottomLowerRight, Vector(0, -1, 0), width, color, ambient, diffuse, reflection, specular, shininess);
+
+    Vector bottomLowerRight(bottomLowerLeft.x + width, bottomLowerLeft.y, bottomLowerLeft.z);
+    Vector bottomUpperLeft(bottomLowerLeft.x, bottomLowerLeft.y + width, bottomLowerLeft.z);
+    Vector bottomUpperRight(bottomLowerLeft.x + width, bottomLowerLeft.y + width, bottomLowerLeft.z);
+    Vector top(bottomLowerLeft.x + width / 2, bottomLowerLeft.y + width / 2, bottomLowerLeft.z + height);
 
     triangles[0] = Triangle(bottomLowerLeft, bottomLowerRight, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[1] = Triangle(bottomUpperLeft, bottomLowerLeft, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[2] = Triangle(bottomUpperRight, bottomUpperLeft, top, color, ambient, diffuse, reflection, specular, shininess);
     triangles[3] = Triangle(bottomLowerRight, bottomUpperRight, top, color, ambient, diffuse, reflection, specular, shininess);
-    base = Square(bottomLowerRight, Vector(0, -1, 0), width, color, ambient, diffuse, reflection, specular, shininess);
+
+    base = Square(bottomUpperRight, Vector(0, 0, -1), width, color, ambient, diffuse, reflection, specular, shininess);
   }
 
   Vector normal(const Vector p) {

@@ -5,6 +5,13 @@
 #include <GL/glut.h>
 #include "object.hpp"
 
+/**
+ * A simple square object that is parallel to either of the three axis.
+ * According to the specification, all the square planes are parallel to either of the three axis.
+ * No use of barycentric equation minimizes the complexity of the code. Using this in cube 
+ * boils down the execution time from minutes to miliseconds (considering the scene does not contain
+ * any pyramid). The code for a general quadrilateral is also provided in the solutions folder.
+*/
 class Square : public Object {
 private:
   Vector maxCoordinatedPoint;

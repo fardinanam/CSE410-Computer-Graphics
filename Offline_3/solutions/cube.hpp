@@ -17,17 +17,29 @@ public:
     this->bottomLowerLeft = bottomLowerLeft;
     this->side = side;
 
-     Vector bottomLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z};
-     Vector topLowerLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z};
-     Vector topLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z};
-     Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
+    // Vector bottomLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z};
+    // Vector topLowerLeft = {bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z};
+    // Vector topLowerRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z};
+    // Vector topUpperRight = {bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z - side};
 
-    faces[0] = Square(topLowerRight, Vector(0, 0, 1), side, color, ambient, diffuse, reflection, specular, shininess);
-    faces[1] = Square(topLowerRight, Vector(1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
-    faces[2] = Square(topLowerRight, Vector(0, 1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
-    faces[3] = Square(topLowerLeft, Vector(-1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
-    faces[4] = Square(topUpperRight, Vector(0, 0, -1), side, color, ambient, diffuse, reflection, specular, shininess);
-    faces[5] = Square(bottomLowerRight, Vector(0, -1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[0] = Square(topLowerRight, Vector(0, 0, 1), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[1] = Square(topLowerRight, Vector(1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[2] = Square(topLowerRight, Vector(0, 1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[3] = Square(topLowerLeft, Vector(-1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[4] = Square(topUpperRight, Vector(0, 0, -1), side, color, ambient, diffuse, reflection, specular, shininess);
+    // faces[5] = Square(bottomLowerRight, Vector(0, -1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+
+    Vector topLowerRight(bottomLowerLeft.x + side, bottomLowerLeft.y, bottomLowerLeft.z + side);
+    Vector topUpperRight(bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z + side);
+    Vector topUpperLeft(bottomLowerLeft.x, bottomLowerLeft.y + side, bottomLowerLeft.z + side);
+    Vector bottomUpperRight(bottomLowerLeft.x + side, bottomLowerLeft.y + side, bottomLowerLeft.z);
+
+    faces[0] = Square(topUpperRight, Vector(1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[1] = Square(topLowerRight, Vector(0, -1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[2] = Square(topUpperRight, Vector(0, 0, 1), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[3] = Square(topUpperRight, Vector(0, 1, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[4] = Square(topUpperLeft, Vector(-1, 0, 0), side, color, ambient, diffuse, reflection, specular, shininess);
+    faces[5] = Square(bottomUpperRight, Vector(0, 0, -1), side, color, ambient, diffuse, reflection, specular, shininess);
   }
 
   double intersect_t(Vector p, Vector d) {
