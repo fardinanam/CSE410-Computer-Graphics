@@ -90,7 +90,9 @@ void keyboardListener(unsigned char key, int x, int y) {
     case '0':
       camera.capture(parser.getObjects(), parser.getLights()
         , parser.getViewDescription().levelOfRecursion);
-      break;    
+      break;   
+    case ' ':
+      parser.getCheckerboard()->toggleHasTexture(); 
     default:
       return;
   }
@@ -249,7 +251,7 @@ void display() {
     objects[i]->draw();
   }
 
-  parser.getCheckerboard().draw(camera.getPosition());
+  parser.getCheckerboard()->draw(camera.getPosition());
 
   vector<Light> lights = parser.getLights();
   glColor3f(0.2, 0.2, 0.2);

@@ -28,7 +28,7 @@ struct description {
 class DescriptionParser {
 private:
   std::vector<Object*> objects;
-  Checkerboard checkerboard;
+  Checkerboard* checkerboard;
   description viewDescription;
   std::vector<Light> lights;
   std::string descriptionFileName;
@@ -37,7 +37,7 @@ private:
     Checkerboard* checkerboard = new Checkerboard(viewDescription.checkerBoardCellWidth, viewDescription.checkerBoardAmbient
       , viewDescription.checkerBoardDiffuse, viewDescription.checkerBoardReflection, 0);
 
-    this->checkerboard = *checkerboard;
+    this->checkerboard = checkerboard;
     objects.push_back(checkerboard);
   }
 public:
@@ -255,7 +255,7 @@ public:
     return objects;
   }
 
-  Checkerboard getCheckerboard() {
+  Checkerboard* getCheckerboard() {
     return checkerboard;
   }
 
