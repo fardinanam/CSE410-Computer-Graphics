@@ -187,29 +187,39 @@ void drawInfiniteCheckerBoard(GLfloat widthOfEachCell) {
   }
 }
 
-void drawCone(Vector position, Vector direction, double cutOffAngle, GLfloat height, int slices, int stacks)
+void drawCone(Vector position, Vector direction, double cutOffAngle, GLfloat scale, int slices)
 {
+  double radius = tan(cutOffAngle * M_PI / 360);
+  double height = 1;
   direction = direction.normalize();
-  double theta = cutOffAngle * M_PI / 180;
-  // Draw the cone's triangles.
+
+  double tempX = radius,  tempY = 0;
+  double currX, currY;
+
+  Vector rotationAxis = Vector(0, 0, -1).cross(direction).normalize();
+  double rotationAngle = acos(Vector(0, 0, -1).dot(direction)) * 180 / M_PI;
+
   glPushMatrix();
-  for (int i = 0; i < stacks; i++) {
-    double currentHeight = i * height / stacks;
-    Vector center = position + direction * currentHeight;
-    double radius = currentHeight * tan(theta);
-    // draw circles at the center of each stack
-    // so that the cone looks smooth and facing towards the lookAt position
-    // circle is made of slices triangles
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(center.x, center.y, center.z);
-    for (int j = 0; j <= slices; j++) {
-      double angle = j * 2 * M_PI / slices;
-      double x = center.x + radius * cos(angle);
-      double y = center.y + radius * sin(angle);
-      glVertex3f(x, y, center.z);
-    }
-    glEnd();
+  glTranslatef(position.x, position.y, position.z);
+  glRotatef(rotationAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+  glScaled(scale, scale, scale);
+
+  glBegin(GL_TRIANGLES);
+  for (int i = 0; i < slices; i++) {
+    double theta = i * 2 * M_PI / slices;
+    currX = radius * cos(theta);
+    currY = radius * sin(theta);
+    
+    double c = (2 + cos(theta)) / 3;
+    glColor3f(c, c, c);
+    glVertex3f(0, 0, height / 2);
+    glVertex3f(tempX, tempY, -height / 2);
+    glVertex3f(currX, currY, -height / 2);
+
+    tempX = currX;
+    tempY = currY;
   }
+  glEnd();
   glPopMatrix();
 }
 
@@ -248,7 +258,7 @@ void display() {
     if (light.cutOffAngle != 360) {
       Vector lookDir = (light.lookAt - light.position).normalize();
       glColor3f(0.45, 0.45, .5);
-      drawCone(light.position, lookDir, light.cutOffAngle, 15, 100, 50);
+      drawCone(light.position, lookDir, light.cutOffAngle, 15, 100);
 
     } else {      
     glTranslatef(light.position.x, light.position.y, light.position.z);
