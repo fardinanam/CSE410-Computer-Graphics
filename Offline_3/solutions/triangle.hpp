@@ -75,54 +75,58 @@ public:
     return (p1 + p2 + p3) / 3;
   }
 
+/*
   double intersect_t(const Vector p, const Vector d) {
-    // Barycentric coordinates
-    // A.set(0, 2, d.x);
-    // A.set(1, 2, d.y);
-    // A.set(2, 2, d.z);
+    Barycentric coordinates
+    A.set(0, 2, d.x);
+    A.set(1, 2, d.y);
+    A.set(2, 2, d.z);
 
-    // double detA = A.determinant();
+    double detA = A.determinant();
 
-    // betaMat.set(0, 0, p1.x - p.x);
-    // betaMat.set(0, 2, d.x);
+    betaMat.set(0, 0, p1.x - p.x);
+    betaMat.set(0, 2, d.x);
 
-    // betaMat.set(1, 0, p1.y - p.y);
-    // betaMat.set(1, 2, d.y);
+    betaMat.set(1, 0, p1.y - p.y);
+    betaMat.set(1, 2, d.y);
 
-    // betaMat.set(2, 0, p1.z - p.z);
-    // betaMat.set(2, 2, d.z);
+    betaMat.set(2, 0, p1.z - p.z);
+    betaMat.set(2, 2, d.z);
 
-    // double beta = betaMat.determinant() / detA;
+    double beta = betaMat.determinant() / detA;
 
-    // if (beta < EPSILON) {
-    //   return -1;
-    // }
+    if (beta < EPSILON) {
+      return -1;
+    }
 
-    // gammaMat.set(0, 1, p1.x - p.x);
-    // gammaMat.set(0, 2, d.x);
-    // gammaMat.set(1, 1, p1.y - p.y);
-    // gammaMat.set(1, 2, d.y);
-    // gammaMat.set(2, 1, p1.z - p.z);
-    // gammaMat.set(2, 2, d.z);
+    gammaMat.set(0, 1, p1.x - p.x);
+    gammaMat.set(0, 2, d.x);
+    gammaMat.set(1, 1, p1.y - p.y);
+    gammaMat.set(1, 2, d.y);
+    gammaMat.set(2, 1, p1.z - p.z);
+    gammaMat.set(2, 2, d.z);
 
-    // double gamma = gammaMat.determinant() / detA;
+    double gamma = gammaMat.determinant() / detA;
 
-    // if (gamma < EPSILON || beta + gamma > 1 - EPSILON) {
-    //   return -1;
-    // }
+    if (gamma < EPSILON || beta + gamma > 1 - EPSILON) {
+      return -1;
+    }
 
-    // tMat.set(0, 2, p1.x - p.x);
-    // tMat.set(1, 2, p1.y - p.y);
-    // tMat.set(2, 2, p1.z - p.z);
+    tMat.set(0, 2, p1.x - p.x);
+    tMat.set(1, 2, p1.y - p.y);
+    tMat.set(2, 2, p1.z - p.z);
 
-    // double t = tMat.determinant() / detA;
+    double t = tMat.determinant() / detA;
 
-    // if (t > -EPSILON) {
-    //   return t;
-    // } 
+    if (t > -EPSILON) {
+      return t;
+    } 
 
-    // return -1;
+    return -1;
+  }
+*/
 
+  double intersect_t(const Vector p, const Vector d) {
     Vector v1 = p2 - p1;
     Vector v2 = p3 - p1;
     Vector h = d.cross(v2);
